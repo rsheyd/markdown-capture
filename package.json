@@ -1,0 +1,8 @@
+{
+  "name": "reddit-markdown-exporter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

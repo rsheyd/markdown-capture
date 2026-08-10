@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Reddit Markdown Exporter",
+  "version": "0.1.1",
+  "description": "Download a Reddit post and its comments as Markdown.",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "scripting"
+  ],
+  "action": {
+    "default_title": "Download Reddit post as Markdown"
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  }
+}
