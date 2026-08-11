@@ -21,17 +21,31 @@ export function parseRedditPostUrl(value) {
   return {
     url,
     subreddit: match[1],
-    postId: match[2]
+    postId: match[2],
+    commentId: commentIdFromPath(url.pathname, match[2])
   };
 }
 
-export function getRedditJsonUrl(value) {
+function commentIdFromPath(pathname, postId) {
+  const suffix = pathname.split(`/comments/${postId}/`)[1] || '';
+  const segments = suffix.split('/').filter(Boolean);
+  const commentMarker = segments.findIndex(segment => segment.toLowerCase() === 'comment');
+
+  if (commentMarker >= 0) return segments[commentMarker + 1] || null;
+  return segments.length >= 2 && /^[a-z0-9]+$/i.test(segments[1]) ? segments[1] : null;
+}
+
+export function getRedditJsonUrl(value, scope = 'all') {
   const parsed = parseRedditPostUrl(value);
   if (!parsed) return null;
+  if (scope === 'comment' && !parsed.commentId) return null;
 
   const url = parsed.url;
   url.hash = '';
-  url.pathname = url.pathname.replace(/\/+$/, '').replace(/\.json$/i, '') + '.json';
+  url.search = '';
+  url.pathname = scope === 'comment'
+    ? url.pathname.replace(/\/+$/, '').replace(/\.json$/i, '') + '.json'
+    : `/r/${parsed.subreddit}/comments/${parsed.postId}.json`;
   url.searchParams.set('raw_json', '1');
   return url.toString();
 }

@@ -31,15 +31,36 @@ test('recognizes normal Reddit post URL variants', () => {
   assert.equal(parseRedditPostUrl('https://example.com/r/test/comments/abc123/title/'), null);
 });
 
-test('builds a JSON URL without a duplicate suffix', () => {
+test('recognizes comment permalink variants', () => {
+  assert.equal(
+    parseRedditPostUrl('https://www.reddit.com/r/test/comments/abc123/comment/def456/').commentId,
+    'def456'
+  );
+  assert.equal(
+    parseRedditPostUrl('https://old.reddit.com/r/test/comments/abc123/title/def456/').commentId,
+    'def456'
+  );
+  assert.equal(parseRedditPostUrl('https://www.reddit.com/r/test/comments/abc123/title/').commentId, null);
+});
+
+test('builds a full-post JSON URL from a comment permalink', () => {
   const result = new URL(getRedditJsonUrl(
-    'https://old.reddit.com/r/test/comments/abc123/title.json?sort=top#comment'
+    'https://old.reddit.com/r/test/comments/abc123/comment/def456/?ref=email#comment'
   ));
   assert.equal(result.hostname, 'old.reddit.com');
-  assert.equal(result.pathname, '/r/test/comments/abc123/title.json');
-  assert.equal(result.searchParams.get('sort'), 'top');
+  assert.equal(result.pathname, '/r/test/comments/abc123.json');
   assert.equal(result.searchParams.get('raw_json'), '1');
   assert.equal(result.hash, '');
+});
+
+test('builds a comment-thread JSON URL only for comment permalinks', () => {
+  const result = new URL(getRedditJsonUrl(
+    'https://www.reddit.com/r/test/comments/abc123/comment/def456/?ref=email',
+    'comment'
+  ));
+  assert.equal(result.pathname, '/r/test/comments/abc123/comment/def456.json');
+  assert.equal(result.searchParams.get('ref'), null);
+  assert.equal(getRedditJsonUrl('https://www.reddit.com/r/test/comments/abc123/title/', 'comment'), null);
 });
 
 test('renders a post and recursive comments while ignoring more objects', () => {

@@ -7,7 +7,7 @@ The project has no build step. Load the repository directory directly as an unpa
 1. Edit files in `src/` or `manifest.json`.
 2. Run `npm test`.
 3. Open `chrome://extensions` and reload **Reddit Markdown Exporter**.
-4. Open a Reddit post and click the extension icon.
+4. Open a Reddit post, click the extension icon, and exercise the popup actions.
 5. Inspect the extension's service worker from its card on `chrome://extensions` to view logs or debug a failed request.
 
 Test at least:
@@ -16,7 +16,9 @@ Test at least:
 - A link post.
 - A post with deleted or removed comments.
 - An `old.reddit.com` post URL.
-- A non-Reddit tab, which should show an error badge and not download anything.
+- A direct comment permalink, using both full-discussion and comment-thread actions.
+- Both download and clipboard output.
+- A non-Reddit tab, which should disable the actions and show an error.
 
 ## Versioning
 

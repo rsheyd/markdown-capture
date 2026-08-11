@@ -1,0 +1,57 @@
+:root {
+  color-scheme: light dark;
+  font: 13px system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 240px;
+}
+
+main {
+  padding: 8px;
+}
+
+.group-label {
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 7px 8px 4px;
+  text-transform: uppercase;
+}
+
+button {
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  padding: 7px 8px;
+  text-align: left;
+  width: 100%;
+}
+
+button:hover:not(:disabled), button:focus-visible {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+button:disabled, .group-label.disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+#status {
+  color: #15803d;
+  display: none;
+  margin: 6px 8px 2px;
+}
+
+#status.visible {
+  display: block;
+}
+
+#status.error {
+  color: #b91c1c;
+}

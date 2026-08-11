@@ -4,8 +4,6 @@ import {
   redditJsonToMarkdown
 } from './reddit.js';
 
-const BADGE_DURATION_MS = 2500;
-
 async function fetchRedditJsonInTab(tabId, jsonUrl) {
   const injectionResults = await chrome.scripting.executeScript({
     target: { tabId },
@@ -37,36 +35,14 @@ async function fetchRedditJsonInTab(tabId, jsonUrl) {
   return result.payload;
 }
 
-async function showBadge(tabId, text, color, title) {
-  await Promise.all([
-    chrome.action.setBadgeBackgroundColor({ tabId, color }),
-    chrome.action.setBadgeText({ tabId, text }),
-    chrome.action.setTitle({ tabId, title })
-  ]);
+async function exportMarkdown({ tabId, url, scope, output }) {
+  const jsonUrl = getRedditJsonUrl(url, scope);
+  if (!jsonUrl) throw new Error('This option requires a Reddit comment permalink');
 
-  setTimeout(() => {
-    chrome.action.setBadgeText({ tabId, text: '' }).catch(() => {});
-    chrome.action.setTitle({
-      tabId,
-      title: 'Download Reddit post as Markdown'
-    }).catch(() => {});
-  }, BADGE_DURATION_MS);
-}
+  const payload = await fetchRedditJsonInTab(tabId, jsonUrl);
+  const result = redditJsonToMarkdown(payload);
 
-chrome.action.onClicked.addListener(async tab => {
-  if (!tab.id || !tab.url) return;
-
-  const jsonUrl = getRedditJsonUrl(tab.url);
-  if (!jsonUrl) {
-    await showBadge(tab.id, '!', '#b91c1c', 'Open a Reddit post before clicking');
-    return;
-  }
-
-  try {
-    await showBadge(tab.id, '…', '#4b5563', 'Fetching Reddit comments…');
-
-    const payload = await fetchRedditJsonInTab(tab.id, jsonUrl);
-    const result = redditJsonToMarkdown(payload);
+  if (output === 'download') {
     const dataUrl = `data:text/markdown;charset=utf-8,${encodeURIComponent(result.markdown)}`;
 
     await chrome.downloads.download({
@@ -74,10 +50,20 @@ chrome.action.onClicked.addListener(async tab => {
       filename: markdownFilename(result.title),
       saveAs: true
     });
-
-    await showBadge(tab.id, '✓', '#15803d', 'Reddit post downloaded');
-  } catch (error) {
-    console.error('Reddit Markdown export failed', error);
-    await showBadge(tab.id, '!', '#b91c1c', `Export failed: ${error.message}`);
   }
+
+  return result;
+}
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type !== 'export-markdown') return false;
+
+  exportMarkdown(message)
+    .then(result => sendResponse({ ok: true, ...result }))
+    .catch(error => {
+      console.error('Reddit Markdown export failed', error);
+      sendResponse({ ok: false, error: error.message });
+    });
+
+  return true;
 });
