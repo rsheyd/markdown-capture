@@ -3,18 +3,25 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Export Reddit Markdown</title>
+    <title>Markdown Capture</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main>
-      <div class="group-label">All comments</div>
-      <button data-scope="all" data-output="download">Download Markdown</button>
-      <button data-scope="all" data-output="copy">Copy Markdown</button>
+      <section id="reddit-actions" hidden>
+        <div class="group-label">All comments</div>
+        <button data-scope="all" data-output="download">Download Markdown</button>
+        <button data-scope="all" data-output="copy">Copy Markdown</button>
 
-      <div class="group-label comment-only">This comment thread</div>
-      <button class="comment-only" data-scope="comment" data-output="download">Download Markdown</button>
-      <button class="comment-only" data-scope="comment" data-output="copy">Copy Markdown</button>
+        <div class="group-label comment-only">This comment thread</div>
+        <button class="comment-only" data-scope="comment" data-output="download">Download Markdown</button>
+        <button class="comment-only" data-scope="comment" data-output="copy">Copy Markdown</button>
+      </section>
+
+      <section id="pdf-actions" hidden>
+        <div class="group-label">PDF document</div>
+        <button id="copy-pdf">Copy PDF as Markdown</button>
+      </section>
 
       <p id="status" role="status" aria-live="polite"></p>
     </main>

@@ -1,8 +1,11 @@
 {
-  "name": "reddit-markdown-exporter",
+  "name": "markdown-capture",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "4.8.69"
   }
 }

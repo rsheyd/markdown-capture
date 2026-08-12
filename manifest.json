@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Reddit Markdown Exporter",
-  "version": "0.2.0",
-  "description": "Download or copy a Reddit post and its comments as Markdown.",
+  "name": "Markdown Capture",
+  "version": "0.3.0",
+  "description": "Capture supported web content as clean Markdown.",
   "permissions": [
     "activeTab",
     "clipboardWrite",
@@ -10,7 +10,7 @@
     "scripting"
   ],
   "action": {
-    "default_title": "Export Reddit post as Markdown",
+    "default_title": "Capture as Markdown",
     "default_popup": "src/popup.html"
   },
   "background": {

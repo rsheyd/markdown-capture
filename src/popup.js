@@ -1,9 +1,17 @@
 import { parseRedditPostUrl } from './reddit.js';
+import { isPdfUrl } from './pdf.js';
+import { isGmailPdfViewerUrl } from './gmail-pdf.js';
 
 const status = document.querySelector('#status');
-const buttons = [...document.querySelectorAll('button')];
+const redditActions = document.querySelector('#reddit-actions');
+const pdfActions = document.querySelector('#pdf-actions');
+const redditButtons = [...redditActions.querySelectorAll('button')];
+const copyPdfButton = document.querySelector('#copy-pdf');
 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 const parsed = tab?.url ? parseRedditPostUrl(tab.url) : null;
+const directPdf = tab?.url ? isPdfUrl(tab.url) : false;
+const gmailPdf = tab?.url ? isGmailPdfViewerUrl(tab.url) : false;
+const pdf = directPdf || gmailPdf;
 
 function showStatus(message, isError = false) {
   status.textContent = message;
@@ -11,19 +19,24 @@ function showStatus(message, isError = false) {
   status.classList.add('visible');
 }
 
-if (!parsed) {
-  buttons.forEach(button => { button.disabled = true; });
-  showStatus('Open a Reddit post to export.', true);
-} else if (!parsed.commentId) {
+if (parsed) {
+  redditActions.hidden = false;
+} else if (pdf) {
+  pdfActions.hidden = false;
+} else {
+  showStatus('Open a supported Reddit post or PDF.', true);
+}
+
+if (parsed && !parsed.commentId) {
   document.querySelectorAll('.comment-only').forEach(element => {
     element.classList.add('disabled');
     if (element instanceof HTMLButtonElement) element.disabled = true;
   });
 }
 
-for (const button of buttons) {
+for (const button of redditButtons) {
   button.addEventListener('click', async () => {
-    buttons.forEach(item => { item.disabled = true; });
+    redditButtons.forEach(item => { item.disabled = true; });
     showStatus('Fetching Reddit comments…');
 
     try {
@@ -43,9 +56,39 @@ for (const button of buttons) {
       showStatus(button.dataset.output === 'copy' ? 'Copied to clipboard.' : 'Download ready.');
     } catch (error) {
       showStatus(error.message, true);
-      buttons.forEach(item => {
+      redditButtons.forEach(item => {
         item.disabled = item.dataset.scope === 'comment' && !parsed.commentId;
       });
     }
   });
 }
+
+copyPdfButton.addEventListener('click', async () => {
+  copyPdfButton.disabled = true;
+  showStatus('Reading PDF…');
+
+  try {
+    const { capturePdfAsMarkdown } = await import('./pdf-capture.js');
+    let fetchUrl = tab.url;
+    let data;
+    let title = tab.title;
+    if (gmailPdf) {
+      const { fetchGmailPdfAttachment } = await import('./gmail-pdf.js');
+      const attachment = await fetchGmailPdfAttachment(tab.id, tab.url);
+      data = attachment.data;
+      title = attachment.title;
+    }
+
+    const result = await capturePdfAsMarkdown({
+      data,
+      fetchUrl,
+      sourceUrl: tab.url,
+      title
+    });
+    await navigator.clipboard.writeText(result.markdown);
+    showStatus('Copied PDF to clipboard.');
+  } catch (error) {
+    showStatus(error.message, true);
+    copyPdfButton.disabled = false;
+  }
+});

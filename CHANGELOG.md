@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0
+
+- Renamed the extension from Reddit Markdown Exporter to Markdown Capture.
+- Defined the local-first multi-source direction, common export metadata, and
+  minimal permission policy.
+- Added a phased roadmap beginning with basic text-PDF capture while retaining
+  the existing Reddit functionality.
+- Added local, basic text extraction for straightforward HTTP(S) PDF tabs with
+  a **Copy PDF as Markdown** action.
+- Added clear errors for non-PDF responses, malformed or password-protected
+  files, and PDFs without extractable text.
+- Bundled PDF.js 4.8.69 locally and added pure conversion tests plus a
+  redistributable PDF fixture.
+- Added a Gmail acquisition special case that resolves the matching
+  authenticated PDF attachment and fetches it in Gmail's same-origin tab
+  context rather than from the cross-origin popup.
+- Improved basic PDF reading order by sorting positioned text top-to-bottom
+  and using left-to-right order for text on the same visual line.
+
 ## 0.2.0
 
 - Replaced the one-click download with a compact four-action popup.
