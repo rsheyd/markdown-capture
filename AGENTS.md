@@ -23,7 +23,7 @@
 - `manifest.json` — extension permissions and service-worker entry point.
 - `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
 - `src/export.js` — shared copy and download orchestration.
-- `src/background.js` — same-origin Reddit acquisition in the active tab.
+- `src/background.js` — same-origin Reddit acquisition and selection context-menu orchestration.
 - `src/popup.html` — compact export-action menu markup.
 - `src/popup.css` — popup menu styling.
 - `src/popup.js` — active-tab checks, action messaging, and clipboard behavior.

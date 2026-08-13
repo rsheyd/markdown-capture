@@ -28,6 +28,11 @@ Test at least:
   limitations are understood rather than treating it as an article fixture.
 - A restricted URL such as `chrome://extensions`, which should show an
   unsupported-source error.
+- A selection containing headings, emphasis, a relative link, and an image.
+  Right-click and choose **Copy Selection as Markdown**, then confirm the
+  copied structure, absolute URLs, and brief success badge.
+- An empty or unavailable selection failure, confirming the brief failure badge
+  and a useful error in the extension service-worker console.
 - A public text-based `.pdf` URL, which should show only the PDF copy action.
 - The copied PDF Markdown title, source URL, paragraph text, and page breaks.
 - A scanned or image-only `.pdf`, which should report the OCR limitation.
@@ -71,6 +76,7 @@ The current permission baseline is:
 - `activeTab` for temporary access after the user invokes the extension.
 - `scripting` for narrowly scoped work in the active tab.
 - `clipboardWrite` for explicit Copy actions.
+- `contextMenus` for the explicit **Copy Selection as Markdown** action.
 - `downloads` for explicit Download actions.
 
 Prefer `activeTab` to broad persistent host access. Add a permission only for

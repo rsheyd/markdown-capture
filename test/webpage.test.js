@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom';
 import {
   captureWebpageDocument,
   contentToMarkdown,
+  selectionToMarkdown,
   webpageMarkdownFilename
 } from '../src/webpage.js';
 
@@ -75,4 +76,61 @@ test('checked-in browser bundle exposes the converter and captures a fixture', a
   const result = dom.window.MarkdownCaptureWebpage.captureWebpageDocument(dom.window.document);
   assert.equal(result.title, 'Field Notes: Tidal Marshes');
   assert.match(result.markdown, /Salt marshes sit between land and sea/);
+
+  const paragraph = dom.window.document.querySelector('article p');
+  const range = dom.window.document.createRange();
+  range.selectNode(paragraph);
+  const selection = dom.window.document.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  assert.match(
+    dom.window.MarkdownCaptureWebpage.selectionToMarkdown(dom.window.document),
+    /Salt marshes sit between land and sea/
+  );
+});
+
+test('converts the selected DOM and makes its links and images absolute', () => {
+  const dom = new JSDOM(`
+    <article>
+      <p id="first">Read <a href="../guide">the guide</a>.</p>
+      <p id="second"><strong>Then</strong> inspect <img src="images/result.png" alt="the result">.</p>
+    </article>
+  `, { url: 'https://example.com/articles/current/' });
+  const { document } = dom.window;
+  const range = document.createRange();
+  range.setStartBefore(document.querySelector('#first'));
+  range.setEndAfter(document.querySelector('#second'));
+  const selection = document.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  const markdown = selectionToMarkdown(document);
+  assert.match(markdown, /\[the guide\]\(https:\/\/example\.com\/articles\/guide\)/);
+  assert.match(markdown, /\*\*Then\*\*/);
+  assert.match(markdown, /!\[the result\]\(https:\/\/example\.com\/articles\/current\/images\/result\.png\)/);
+});
+
+test('rejects an empty selection', () => {
+  const document = new JSDOM('<p>Nothing selected</p>', {
+    url: 'https://example.com/'
+  }).window.document;
+  assert.throws(() => selectionToMarkdown(document), /No page content is selected/);
+});
+
+test('converts every non-collapsed DOM range exposed by the selection', () => {
+  const document = new JSDOM('<p id="one">First range</p><p id="two">Second range</p>', {
+    url: 'https://example.com/'
+  }).window.document;
+  const ranges = ['one', 'two'].map(id => {
+    const range = document.createRange();
+    range.selectNode(document.querySelector(`#${id}`));
+    return range;
+  });
+  document.getSelection = () => ({
+    getRangeAt: index => ranges[index],
+    isCollapsed: false,
+    rangeCount: ranges.length
+  });
+
+  assert.equal(selectionToMarkdown(document), 'First range\n\nSecond range');
 });

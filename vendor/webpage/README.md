@@ -1,9 +1,10 @@
 # Webpage conversion bundle
 
-`webpage.js` is the browser-ready Phase 3A conversion bundle. It contains the
-exact versions of Mozilla Readability, Turndown, and turndown-plugin-gfm pinned
-in the root `package.json` and is loaded only into the active tab after a user
-chooses a generic webpage export action.
+`webpage.js` is the browser-ready webpage and selection conversion bundle. It
+contains the exact versions of Mozilla Readability, Turndown, and
+turndown-plugin-gfm pinned in the root `package.json` and is loaded only into
+the active tab after a user chooses a generic webpage or selection export
+action.
 
 To update it:
 
