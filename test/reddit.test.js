@@ -84,6 +84,8 @@ test('renders a post and recursive comments while ignoring more objects', () => 
   ]);
 
   const result = redditJsonToMarkdown(payload);
+  assert.equal(result.filename, 'A useful post.md');
+  assert.equal(result.sourceUrl, 'https://www.reddit.com/r/test/comments/abc123/a_useful_post/');
   assert.match(result.markdown, /^# A useful post/m);
   assert.match(result.markdown, /\*\*u\/poster\*\* · r\/test/);
   assert.match(result.markdown, /### u\/first · 42 points/);

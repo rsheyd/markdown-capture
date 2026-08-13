@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- Added a common source-adapter registry for Reddit and PDF capture.
+- Normalized every export to Markdown content, title, canonical source URL,
+  and suggested filename.
+- Centralized copy and download handling while keeping Chrome-specific source
+  acquisition at the adapter boundary.
+- Made the popup render the detected source and only its applicable actions.
+
 ## 0.3.0
 
 - Renamed the extension from Reddit Markdown Exporter to Markdown Capture.

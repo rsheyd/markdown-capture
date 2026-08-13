@@ -8,21 +8,8 @@
   </head>
   <body>
     <main>
-      <section id="reddit-actions" hidden>
-        <div class="group-label">All comments</div>
-        <button data-scope="all" data-output="download">Download Markdown</button>
-        <button data-scope="all" data-output="copy">Copy Markdown</button>
-
-        <div class="group-label comment-only">This comment thread</div>
-        <button class="comment-only" data-scope="comment" data-output="download">Download Markdown</button>
-        <button class="comment-only" data-scope="comment" data-output="copy">Copy Markdown</button>
-      </section>
-
-      <section id="pdf-actions" hidden>
-        <div class="group-label">PDF document</div>
-        <button id="copy-pdf">Copy PDF as Markdown</button>
-      </section>
-
+      <div id="source-label" class="source-label" hidden></div>
+      <section id="actions" hidden></section>
       <p id="status" role="status" aria-live="polite"></p>
     </main>
     <script type="module" src="popup.js"></script>

@@ -22,8 +22,9 @@ downstream editor rather than target Obsidian or another specific application.
   cannot be represented faithfully in Markdown.
 - Keep source conversion independent from Chrome APIs and cover it with Node
   tests and fixtures.
-- Do not initially duplicate selection-oriented context-menu features already
-  handled well by the existing Copy as Markdown extension.
+- Defer selection-oriented context-menu capture until after the adapter
+  architecture, then reuse the generic HTML-to-Markdown conversion layer
+  rather than building a separate conversion path.
 - Do not add note storage, synchronization, tagging, or Obsidian-specific
   vault integration.
 
@@ -59,7 +60,7 @@ Exit criteria:
 - Project instructions describe the multi-source product rather than the
   current Reddit-only extension.
 
-### Phase 1 — Add basic PDF-to-Markdown (implementation complete; Chrome smoke check pending)
+### Phase 1 — Add basic PDF-to-Markdown (complete)
 
 Deliver a deliberately small first version immediately after the rename. It
 should provide useful text extraction without waiting for the final adapter
@@ -96,14 +97,14 @@ Exit criteria:
 - The implementation is isolated enough to be moved behind the adapter
   contract in Phase 2 without changing its externally visible behavior.
 
-### Phase 2 — Introduce the adapter architecture
+### Phase 2 — Introduce the adapter architecture (implementation complete; Chrome smoke check pending)
 
-- Define the adapter contract and source registry.
-- Move Reddit detection, acquisition, and conversion behind a Reddit adapter
+- [x] Define the adapter contract and source registry.
+- [x] Move Reddit detection, acquisition, and conversion behind a Reddit adapter
   without changing its user-visible output.
-- Separate shared copy/download orchestration from source-specific behavior.
-- Make the popup display the detected source and only applicable actions.
-- Preserve or expand the existing pure Node tests.
+- [x] Separate shared copy/download orchestration from source-specific behavior.
+- [x] Make the popup display the detected source and only applicable actions.
+- [x] Preserve or expand the existing pure Node tests.
 
 Exit criteria:
 
@@ -117,6 +118,10 @@ Exit criteria:
   content.
 - Convert the extracted HTML with a maintained HTML-to-Markdown library such
   as Turndown.
+- Add a **Copy Selection as Markdown** context-menu action that converts the
+  user-selected DOM through the same HTML-to-Markdown layer. Keep the initial
+  context-menu scope to selections; page links, images, and tab lists remain
+  out of scope.
 - Preserve common headings, lists, links, images, tables, quotes, and fenced
   code blocks where practical.
 - Clearly identify generic extraction as best-effort in the UI and README.
@@ -125,6 +130,7 @@ Exit criteria:
 Exit criteria:
 
 - Ordinary articles and documentation pages can be copied or downloaded.
+- Selected page content can be copied as Markdown from Chrome's context menu.
 - Navigation, cookie banners, and other obvious page chrome are normally
   omitted.
 - Reddit still uses its structured adapter rather than the generic fallback.
@@ -208,8 +214,6 @@ and is not a commitment to support every website.
 ## Deferred decisions
 
 - Whether to support OCR locally for scanned PDFs.
-- Whether selection and context-menu export should eventually replace the
-  separate Copy as Markdown extension.
 - Whether images should be downloaded and rewritten to local paths.
 - Whether customizable frontmatter or templates justify their UI and
   maintenance cost.

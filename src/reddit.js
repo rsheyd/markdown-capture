@@ -100,18 +100,18 @@ export function redditJsonToMarkdown(payload) {
   const post = payload?.[0]?.data?.children?.[0]?.data;
   if (!post) throw new Error('Reddit JSON did not contain a post');
 
-  const originalUrl = canonicalUrl(post);
+  const sourceUrl = canonicalUrl(post);
   const lines = [
     `# ${inline(post.title, 'Untitled Reddit post')}`,
     '',
     `**${author(post.author)}** · r/${inline(post.subreddit, 'unknown')}`,
-    `[Original Reddit post](${originalUrl})`
+    `[Original Reddit post](${sourceUrl})`
   ];
 
   const body = String(post.selftext || '').trim();
   if (body) {
     lines.push('', body);
-  } else if (post.url && post.url !== originalUrl) {
+  } else if (post.url && post.url !== sourceUrl) {
     lines.push('', `[Linked content](${post.url})`);
   }
 
@@ -132,9 +132,10 @@ export function redditJsonToMarkdown(payload) {
   if (!commentCount) lines.push('', '_No comments were returned._');
 
   return {
+    filename: markdownFilename(inline(post.title, 'Reddit post')),
     markdown: `${lines.join('\n').trim()}\n`,
     title: inline(post.title, 'Reddit post'),
-    originalUrl
+    sourceUrl
   };
 }
 

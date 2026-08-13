@@ -21,7 +21,9 @@
 - `DEVELOPMENT.md` — local Chrome loop, tests, smoke checks, and versioning.
 - `ROADMAP.md` — phased plan for evolving into a multi-source Markdown exporter.
 - `manifest.json` — extension permissions and service-worker entry point.
-- `src/background.js` — Reddit fetching, conversion orchestration, and download behavior.
+- `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
+- `src/export.js` — shared copy and download orchestration.
+- `src/background.js` — same-origin Reddit acquisition in the active tab.
 - `src/popup.html` — compact export-action menu markup.
 - `src/popup.css` — popup menu styling.
 - `src/popup.js` — active-tab checks, action messaging, and clipboard behavior.
@@ -31,6 +33,8 @@
 - `src/reddit.js` — pure Reddit URL and Markdown conversion logic.
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
 - `test/pdf.test.js` — PDF detection, conversion, and fixture extraction tests.
+- `test/adapters.test.js` — adapter contract, detection, action, and capture tests.
+- `test/export.test.js` — normalized shared copy/download orchestration tests.
 - `test/gmail-pdf.test.js` — Gmail projector URL detection tests.
 - `test/fixtures/` — generated, redistributable PDF fixture and generator.
 - `test/reddit.test.js` — Reddit unit tests.

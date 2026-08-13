@@ -84,8 +84,10 @@ npm test
 
 - `ROADMAP.md` — phased plan for adding PDF and webpage capture.
 - `manifest.json` — Manifest V3 extension configuration.
-- `src/background.js` — Reddit fetch, conversion orchestration, and file downloads.
-- `src/popup.html`, `src/popup.css`, and `src/popup.js` — export menu and clipboard behavior.
+- `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
+- `src/export.js` — shared copy and download orchestration.
+- `src/background.js` — same-origin Reddit acquisition in the active tab.
+- `src/popup.html`, `src/popup.css`, and `src/popup.js` — source-aware export menu.
 - `src/reddit.js` — URL handling and JSON-to-Markdown conversion.
 - `src/pdf.js` — pure PDF detection and basic text-to-Markdown conversion.
 - `src/pdf-capture.js` — browser-side PDF fetching and PDF.js orchestration.

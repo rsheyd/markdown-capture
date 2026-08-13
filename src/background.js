@@ -1,10 +1,4 @@
-import {
-  getRedditJsonUrl,
-  markdownFilename,
-  redditJsonToMarkdown
-} from './reddit.js';
-
-async function fetchRedditJsonInTab(tabId, jsonUrl) {
+async function fetchRedditJson(tabId, jsonUrl) {
   const injectionResults = await chrome.scripting.executeScript({
     target: { tabId },
     world: 'MAIN',
@@ -35,33 +29,13 @@ async function fetchRedditJsonInTab(tabId, jsonUrl) {
   return result.payload;
 }
 
-async function exportMarkdown({ tabId, url, scope, output }) {
-  const jsonUrl = getRedditJsonUrl(url, scope);
-  if (!jsonUrl) throw new Error('This option requires a Reddit comment permalink');
-
-  const payload = await fetchRedditJsonInTab(tabId, jsonUrl);
-  const result = redditJsonToMarkdown(payload);
-
-  if (output === 'download') {
-    const dataUrl = `data:text/markdown;charset=utf-8,${encodeURIComponent(result.markdown)}`;
-
-    await chrome.downloads.download({
-      url: dataUrl,
-      filename: markdownFilename(result.title),
-      saveAs: true
-    });
-  }
-
-  return result;
-}
-
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== 'export-markdown') return false;
+  if (message?.type !== 'fetch-reddit-json') return false;
 
-  exportMarkdown(message)
-    .then(result => sendResponse({ ok: true, ...result }))
+  fetchRedditJson(message.tabId, message.jsonUrl)
+    .then(payload => sendResponse({ ok: true, payload }))
     .catch(error => {
-      console.error('Reddit Markdown export failed', error);
+      console.error('Reddit acquisition failed', error);
       sendResponse({ ok: false, error: error.message });
     });
 

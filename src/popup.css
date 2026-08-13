@@ -12,6 +12,12 @@ main {
   padding: 8px;
 }
 
+.source-label {
+  font-size: 13px;
+  font-weight: 650;
+  padding: 5px 8px 3px;
+}
+
 .group-label {
   color: #6b7280;
   font-size: 11px;

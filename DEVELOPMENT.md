@@ -61,4 +61,7 @@ install or upgrade warning before release.
 
 Future source adapters will normalize their output to four required values:
 Markdown content, a title, a canonical source URL, and a safe suggested
-filename. Source conversion should remain independent from Chrome APIs.
+filename. `src/adapters.js` owns detection, applicable actions, and the common
+capture contract. `src/export.js` owns copy/download dispatch. Chrome-facing
+acquisition is supplied to adapters as an injected dependency so detection and
+conversion remain testable in Node without Chrome APIs.
