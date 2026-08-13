@@ -3,9 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "vendor:webpage": "esbuild src/webpage.js --bundle --format=iife --global-name=MarkdownCaptureWebpage --legal-comments=linked --outfile=vendor/webpage/webpage.js"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
+    "jsdom": "26.1.0",
     "pdfjs-dist": "4.8.69"
+  },
+  "dependencies": {
+    "@mozilla/readability": "0.6.0",
+    "turndown": "7.2.4",
+    "turndown-plugin-gfm": "1.0.2"
   }
 }

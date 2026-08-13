@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0
+
+- Added best-effort Markdown capture for ordinary HTTP(S) webpages, with Copy
+  and Download actions after the specialized Reddit and PDF adapters.
+- Added local primary-content extraction with Mozilla Readability and
+  HTML-to-Markdown conversion with Turndown and its GFM plugin.
+- Preserved common headings, lists, links, images, tables, quotes, inline code,
+  and fenced code blocks where practical.
+- Bundled the webpage conversion runtime and dependency licenses locally.
+- Added article, documentation, table, list, and browser-bundle fixtures.
+- Labeled generic actions as main-content extraction and documented that
+  listing-style pages such as search results and news homepages are not yet
+  reliably supported.
+
 ## 0.4.0
 
 - Added a common source-adapter registry for Reddit and PDF capture.

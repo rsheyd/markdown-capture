@@ -1,0 +1,78 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { JSDOM } from 'jsdom';
+import {
+  captureWebpageDocument,
+  contentToMarkdown,
+  webpageMarkdownFilename
+} from '../src/webpage.js';
+
+async function fixture(name, url = `https://example.com/articles/${name}`) {
+  const html = await readFile(new URL(`./fixtures/${name}`, import.meta.url), 'utf8');
+  return new JSDOM(html, { url }).window.document;
+}
+
+test('extracts article content while omitting page chrome and normalizing URLs', async () => {
+  const document = await fixture('webpage-article.html');
+  const result = captureWebpageDocument(document);
+
+  assert.equal(result.title, 'Field Notes: Tidal Marshes');
+  assert.equal(result.filename, 'Field Notes Tidal Marshes.md');
+  assert.equal(result.sourceUrl, 'https://example.com/notes/tidal-marshes');
+  assert.match(result.markdown, /^# Field Notes: Tidal Marshes/);
+  assert.match(result.markdown, /\[A current survey map\]\(https:\/\/example\.com\/maps\/marsh\.pdf\)/);
+  assert.match(result.markdown, /!\[A tidal marsh at low water\]\(https:\/\/example\.com\/images\/marsh\.jpg\)/);
+  assert.doesNotMatch(result.markdown, /Pricing|Cookie settings/);
+});
+
+test('preserves fenced code blocks and inline code from documentation', async () => {
+  const result = captureWebpageDocument(await fixture('webpage-documentation.html'));
+  assert.match(result.markdown, /```(?:js)?\nconst widget/);
+  assert.match(result.markdown, /`createWidget`/);
+  assert.doesNotMatch(result.markdown, /Documentation navigation/);
+});
+
+test('preserves GFM tables', async () => {
+  const result = captureWebpageDocument(await fixture('webpage-table.html'));
+  assert.match(result.markdown, /\| Release\s+\| Status\s+\|/);
+  assert.match(result.markdown, /\| Stable\s+\| Supported\s+\|/);
+});
+
+test('preserves ordered and nested unordered lists', async () => {
+  const result = captureWebpageDocument(await fixture('webpage-lists.html'));
+  assert.match(result.markdown, /1\.\s+Run the test suite\./);
+  assert.match(result.markdown, /\s+-\s+Confirm the version\./);
+});
+
+test('converts HTML fragments with GFM structures through the shared converter', () => {
+  const document = new JSDOM('', { url: 'https://example.com/base/' }).window.document;
+  const markdown = contentToMarkdown('<p><del>Old</del> and <a href="next">new</a>.</p>', {
+    baseUrl: document.URL,
+    document
+  });
+  assert.equal(markdown, '~~Old~~ and [new](https://example.com/base/next).');
+});
+
+test('creates safe filenames and rejects documents without readable content', () => {
+  assert.equal(webpageMarkdownFilename('Guide: One?'), 'Guide One.md');
+  const document = new JSDOM('<title>Empty</title>', {
+    url: 'https://example.com/empty'
+  }).window.document;
+  assert.throws(() => captureWebpageDocument(document), /Could not identify/);
+});
+
+test('checked-in browser bundle exposes the converter and captures a fixture', async () => {
+  const [bundle, html] = await Promise.all([
+    readFile(new URL('../vendor/webpage/webpage.js', import.meta.url), 'utf8'),
+    readFile(new URL('./fixtures/webpage-article.html', import.meta.url), 'utf8')
+  ]);
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously',
+    url: 'https://example.com/articles/field-notes'
+  });
+  dom.window.eval(bundle);
+  const result = dom.window.MarkdownCaptureWebpage.captureWebpageDocument(dom.window.document);
+  assert.equal(result.title, 'Field Notes: Tidal Marshes');
+  assert.match(result.markdown, /Salt marshes sit between land and sea/);
+});

@@ -2,7 +2,8 @@
 
 A lightweight, local-first Chrome extension that captures supported web
 content as clean Markdown. It downloads or copies Reddit posts and their
-comments and can copy basic text-based PDFs.
+comments, copies basic text-based PDFs, and captures the primary content of
+ordinary webpages on a best-effort basis.
 
 Click the extension icon while viewing a Reddit post, then choose whether to download or copy the full discussion. On a comment permalink, you can export only that comment thread instead.
 
@@ -10,6 +11,11 @@ For a straightforward HTTP(S) URL ending in `.pdf`, or a PDF attachment open
 in Gmail's viewer, click the extension and choose **Copy PDF as Markdown**.
 Markdown Capture reads the underlying PDF locally rather than scraping the
 rendered viewer.
+
+On an article or documentation page, choose **Copy Main Content** or **Download
+Main Content**. Markdown Capture uses a locally bundled copy of Mozilla
+Readability to identify the main content, then converts that content locally
+with Turndown.
 
 Markdown Capture is intended to work with any Markdown editor. It does not
 require an account, send captured content to a conversion service, or target a
@@ -56,6 +62,11 @@ generic page conversion loses important structure.
 - Shows source-appropriate actions instead of treating PDFs as webpages.
 - Resolves the authenticated attachment behind Gmail's PDF viewer without
   including its internal download URL in the exported Markdown.
+- Extracts the primary content of ordinary webpages with locally bundled
+  Readability, then preserves common Markdown structures with Turndown and its
+  GFM plugin.
+- Uses the generic webpage adapter only after specialized Reddit and PDF
+  detection, so their structured exporters remain authoritative.
 
 ## Install locally in Chrome
 
@@ -64,8 +75,8 @@ generic page conversion loses important structure.
 3. Click **Load unpacked**.
 4. Select this project directory—the directory containing `manifest.json`.
 5. Pin **Markdown Capture** from Chrome's Extensions menu.
-6. Open a Reddit post and click the extension icon.
-7. Choose one of the download or copy actions.
+6. Open a supported source and click the extension icon.
+7. Choose one of the source-specific download or copy actions.
 
 Download actions show Chrome's Save dialog. Copy actions place the Markdown on the clipboard. The popup displays progress and any error summary; inspect the service worker from `chrome://extensions` for full error details.
 
@@ -91,11 +102,21 @@ npm test
 - `src/reddit.js` — URL handling and JSON-to-Markdown conversion.
 - `src/pdf.js` — pure PDF detection and basic text-to-Markdown conversion.
 - `src/pdf-capture.js` — browser-side PDF fetching and PDF.js orchestration.
+- `src/webpage.js` — pure Readability and HTML-to-Markdown conversion logic.
 - `vendor/pdfjs/` — browser-ready PDF.js runtime and license.
-- `test/` — Reddit and PDF unit tests plus a generated PDF fixture.
+- `vendor/webpage/` — browser-ready webpage converter and dependency licenses.
+- `test/` — adapter, Reddit, PDF, webpage, and shared export tests and fixtures.
 
 ## Limitations
 
+- Generic webpage capture is best effort. Readability may omit content on
+  application-style pages or choose the wrong region on unusual layouts.
+- Search results, news homepages, feeds, dashboards, and other collections of
+  repeated cards are not reliably supported yet because they do not have one
+  dominant article body.
+- Dynamic content that has not rendered when capture begins is not included.
+- Complex interactive components, forms, canvas content, and visual layout do
+  not have lossless Markdown equivalents.
 - PDF capture initially recognizes only HTTP(S) URLs whose path ends in
   `.pdf` and PDF attachments opened in Gmail's standard projector viewer.
 - PDF capture supports text-based PDFs only. Scanned or image-only PDFs need

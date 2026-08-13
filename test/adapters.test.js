@@ -8,7 +8,7 @@ import {
 } from '../src/adapters.js';
 
 test('registers adapters with the common contract', () => {
-  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf']);
+  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'webpage']);
   for (const adapter of adapters) {
     assert.equal(typeof adapter.detect, 'function');
     assert.equal(typeof adapter.actions, 'function');
@@ -40,9 +40,23 @@ test('detects direct and Gmail-viewer PDFs', () => {
   assert.equal(gmail.detection.gmail, true);
 });
 
-test('returns no source for unsupported tabs and no adapter for unknown ids', () => {
-  assert.equal(detectSource({ url: 'https://example.com/article' }), null);
+test('uses a generic fallback for HTTP pages and rejects restricted schemes', () => {
+  const source = detectSource({ url: 'https://example.com/article' });
+  assert.equal(source.id, 'webpage');
+  assert.equal(source.label, 'Article or document (best effort)');
+  assert.deepEqual(source.actions.map(action => action.label), [
+    'Download Main Content',
+    'Copy Main Content'
+  ]);
+  assert.equal(detectSource({ url: 'chrome://extensions/' }), null);
   assert.equal(getAdapter('unknown'), null);
+});
+
+test('prefers specialized adapters over the generic webpage fallback', () => {
+  assert.equal(detectSource({
+    url: 'https://www.reddit.com/r/test/comments/abc123/a_post/'
+  }).id, 'reddit');
+  assert.equal(detectSource({ url: 'https://example.com/report.pdf' }).id, 'pdf');
 });
 
 test('Reddit adapter captures a normalized result through injected acquisition', async () => {
@@ -94,6 +108,25 @@ test('PDF adapter delegates acquisition and preserves the normalized result', as
       return expected;
     },
     fetchGmailPdfAttachment: async () => assert.fail('Gmail acquisition should not run')
+  });
+  assert.equal(result, expected);
+});
+
+test('webpage adapter delegates active-tab acquisition', async () => {
+  const tab = { id: 9, url: 'https://example.com/article', title: 'Article' };
+  const source = detectSource(tab);
+  const expected = {
+    filename: 'Article.md',
+    markdown: '# Article\n',
+    sourceUrl: tab.url,
+    title: 'Article'
+  };
+  const result = await getAdapter(source.id).capture({ tab }, {
+    captureWebpage: async (tabId, sourceUrl) => {
+      assert.equal(tabId, tab.id);
+      assert.equal(sourceUrl, tab.url);
+      return expected;
+    }
   });
   assert.equal(result, expected);
 });

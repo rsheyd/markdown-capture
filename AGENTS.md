@@ -31,10 +31,13 @@
 - `src/pdf-capture.js` — PDF fetching and browser-side PDF.js orchestration.
 - `src/gmail-pdf.js` — Gmail PDF viewer detection and attachment URL resolution.
 - `src/reddit.js` — pure Reddit URL and Markdown conversion logic.
+- `src/webpage.js` — pure Readability and HTML-to-Markdown conversion logic.
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
+- `vendor/webpage/` — bundled webpage converter, licenses, and update notes.
 - `test/pdf.test.js` — PDF detection, conversion, and fixture extraction tests.
 - `test/adapters.test.js` — adapter contract, detection, action, and capture tests.
 - `test/export.test.js` — normalized shared copy/download orchestration tests.
 - `test/gmail-pdf.test.js` — Gmail projector URL detection tests.
 - `test/fixtures/` — generated, redistributable PDF fixture and generator.
 - `test/reddit.test.js` — Reddit unit tests.
+- `test/webpage.test.js` — webpage conversion and browser-bundle fixture tests.

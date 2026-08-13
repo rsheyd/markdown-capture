@@ -82,7 +82,33 @@ const pdfAdapter = {
   }
 };
 
-export const adapters = [redditAdapter, pdfAdapter];
+const webpageAdapter = {
+  id: 'webpage',
+  label: 'Article or document (best effort)',
+
+  detect(tab) {
+    if (!tab?.url) return null;
+    try {
+      const url = new URL(tab.url);
+      return ['http:', 'https:'].includes(url.protocol) ? {} : null;
+    } catch {
+      return null;
+    }
+  },
+
+  actions() {
+    return [
+      action('webpage-download', 'Download Main Content', 'download'),
+      action('webpage-copy', 'Copy Main Content', 'copy')
+    ];
+  },
+
+  capture({ tab }, dependencies) {
+    return dependencies.captureWebpage(tab.id, tab.url);
+  }
+};
+
+export const adapters = [redditAdapter, pdfAdapter, webpageAdapter];
 
 export function detectSource(tab) {
   for (const adapter of adapters) {

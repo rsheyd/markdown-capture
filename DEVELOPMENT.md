@@ -1,6 +1,8 @@
 # Development
 
-The project has no build step. Load the repository directory directly as an unpacked Chrome extension.
+The checked-in project has no required build step. Load the repository
+directory directly as an unpacked Chrome extension. Regenerating a vendored
+runtime after changing its pinned dependency is a separate maintenance step.
 
 ## Development loop
 
@@ -18,7 +20,14 @@ Test at least:
 - An `old.reddit.com` post URL.
 - A direct comment permalink, using both full-discussion and comment-thread actions.
 - Both download and clipboard output.
-- A non-Reddit tab, which should disable the actions and show an error.
+- An ordinary article, which should show **Copy Main Content** and **Download
+  Main Content** actions and omit obvious navigation and page chrome.
+- A documentation page with headings, links, lists, and fenced code.
+- A page with a table, confirming that a readable GFM table is returned.
+- A search results page or news homepage, confirming that its current
+  limitations are understood rather than treating it as an article fixture.
+- A restricted URL such as `chrome://extensions`, which should show an
+  unsupported-source error.
 - A public text-based `.pdf` URL, which should show only the PDF copy action.
 - The copied PDF Markdown title, source URL, paragraph text, and page breaks.
 - A scanned or image-only `.pdf`, which should report the OCR limitation.
@@ -35,6 +44,15 @@ the browser-ready copies in `vendor/pdfjs/`, so updating the npm dependency
 alone does not update the extension runtime. After changing the version, copy
 the runtime files and license using the commands in `vendor/pdfjs/README.md`,
 then run the full tests and Chrome PDF smoke checks.
+
+## Vendored webpage converter
+
+Generic webpage capture uses the exact Readability, Turndown, and GFM plugin
+versions in `package.json`. Chrome loads the generated
+`vendor/webpage/webpage.js` bundle rather than `node_modules`. After changing
+one of those versions, run `npm install`, `npm run vendor:webpage`, refresh the
+license files as documented in `vendor/webpage/README.md`, then run the full
+tests and generic webpage Chrome smoke checks.
 
 ## Versioning
 

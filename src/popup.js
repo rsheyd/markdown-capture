@@ -28,6 +28,21 @@ const dependencies = {
     return capturePdfAsMarkdown(options);
   },
 
+  async captureWebpage(tabId, sourceUrl) {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['vendor/webpage/webpage.js']
+    });
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: url => globalThis.MarkdownCaptureWebpage.captureWebpageDocument(document, url),
+      args: [sourceUrl]
+    });
+    const result = results[0]?.result;
+    if (!result) throw new Error('The web page did not return captured content.');
+    return result;
+  },
+
   copy(markdown) {
     return navigator.clipboard.writeText(markdown);
   },
@@ -68,7 +83,7 @@ function appendAction(action, previousGroup) {
 }
 
 if (!source) {
-  showStatus('Open a supported Reddit post or PDF.', true);
+  showStatus('Open an HTTP(S) webpage, Reddit post, or supported PDF.', true);
 } else {
   sourceLabel.textContent = source.label;
   sourceLabel.hidden = false;
@@ -86,7 +101,12 @@ if (!source) {
 
     const action = source.actions.find(item => item.id === button.dataset.actionId);
     setButtonsDisabled(true);
-    showStatus(source.id === 'pdf' ? 'Reading PDF…' : 'Fetching Reddit comments…');
+    const progress = source.id === 'pdf'
+      ? 'Reading PDF…'
+      : source.id === 'reddit'
+        ? 'Fetching Reddit comments…'
+        : 'Reading page…';
+    showStatus(progress);
 
     try {
       const result = await runExport({ source, actionId: action.id, tab }, dependencies);

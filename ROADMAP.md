@@ -97,7 +97,7 @@ Exit criteria:
 - The implementation is isolated enough to be moved behind the adapter
   contract in Phase 2 without changing its externally visible behavior.
 
-### Phase 2 — Introduce the adapter architecture (implementation complete; Chrome smoke check pending)
+### Phase 2 — Introduce the adapter architecture (complete)
 
 - [x] Define the adapter contract and source registry.
 - [x] Move Reddit detection, acquisition, and conversion behind a Reddit adapter
@@ -112,28 +112,71 @@ Exit criteria:
 - A new adapter can be added without changing shared output code.
 - Unsupported tabs fail clearly rather than silently.
 
-### Phase 3 — Add a generic webpage fallback
+### Phase 3A — Add a generic webpage fallback (`0.5.0`; complete)
 
-- Use a maintained Readability implementation to identify primary page
+- [x] Use a maintained Readability implementation to identify primary page
   content.
-- Convert the extracted HTML with a maintained HTML-to-Markdown library such
+- [x] Convert the extracted HTML with a maintained HTML-to-Markdown library such
   as Turndown.
-- Add a **Copy Selection as Markdown** context-menu action that converts the
-  user-selected DOM through the same HTML-to-Markdown layer. Keep the initial
-  context-menu scope to selections; page links, images, and tab lists remain
-  out of scope.
-- Preserve common headings, lists, links, images, tables, quotes, and fenced
+- [x] Preserve common headings, lists, links, images, tables, quotes, and fenced
   code blocks where practical.
-- Clearly identify generic extraction as best-effort in the UI and README.
-- Add representative fixtures for articles, documentation, tables, and code.
+- [x] Clearly identify generic extraction as best-effort in the UI and README.
+- [x] Add representative fixtures for articles, documentation, tables, and code.
 
 Exit criteria:
 
 - Ordinary articles and documentation pages can be copied or downloaded.
-- Selected page content can be copied as Markdown from Chrome's context menu.
 - Navigation, cookie banners, and other obvious page chrome are normally
   omitted.
 - Reddit still uses its structured adapter rather than the generic fallback.
+
+### Phase 3B — Add selection context-menu capture (`0.5.1`)
+
+- Add a **Copy Selection as Markdown** action to Chrome's selection context
+  menu.
+- Convert the user-selected DOM through Phase 3A's shared HTML-to-Markdown
+  layer rather than introducing a second conversion path.
+- Make relative links and image sources absolute before conversion.
+- Handle selections containing multiple DOM ranges where Chrome exposes them.
+- Show concise success or failure feedback without opening the popup.
+- Keep the initial context-menu scope to selections; page links, images, and
+  tab lists remain out of scope.
+- Add selection-specific fixtures and pure conversion tests.
+
+Exit criteria:
+
+- Selected page content can be copied as Markdown from Chrome's context menu.
+- Selection capture preserves the same supported Markdown structures as the
+  generic webpage adapter where the selected DOM contains them.
+- The feature reuses `activeTab` access after the explicit context-menu gesture
+  and does not require persistent access to every website.
+- Generic webpage, Reddit, and PDF exports continue to behave as before.
+
+### Phase 3C — Capture listing and application-style pages
+
+- Add representative fixtures for search results, news homepages, feeds, and
+  other pages composed of repeated result cards rather than one article body.
+- Compare a generic visible-page conversion mode with specialized adapters for
+  frequently used sources before committing to either architecture.
+- If a generic mode is viable, remove obvious navigation, controls, hidden UI,
+  cookie prompts, and repeated page chrome without discarding the result cards.
+- If specialized adapters are necessary, add one only where its structured
+  output materially outperforms the generic mode and its maintenance cost is
+  justified by demonstrated use.
+- Keep the main-content Readability path as the default for articles and
+  documentation; do not silently substitute noisier full-page output.
+- Label the chosen action so users can distinguish main-content extraction
+  from listing or visible-page capture.
+
+Exit criteria:
+
+- A Google Search results page preserves the visible result titles, links, and
+  snippets in a readable order without including most interface controls.
+- The Google News homepage preserves story groupings, titles, source labels,
+  and links well enough to scan in Markdown.
+- Ordinary articles continue to use the cleaner Readability path.
+- The chosen generic or specialized approach has fixtures, pure conversion
+  tests, documented limitations, and a clear maintenance path.
 
 ### Phase 4 — Mature PDF-to-Markdown
 
