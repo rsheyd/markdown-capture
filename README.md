@@ -1,81 +1,32 @@
 # Markdown Capture
 
 A lightweight, local-first Chrome extension that captures supported web
-content as clean Markdown. It downloads or copies Reddit posts and their
-comments, copies basic text-based PDFs, and captures the primary content of
-ordinary webpages on a best-effort basis.
+content as clean Markdown. It works with any Markdown editor, requires no
+account, and performs conversion in the browser without sending captured
+content to a hosted service.
 
-Click the extension icon while viewing a Reddit post, then choose whether to download or copy the full discussion. On a comment permalink, you can export only that comment thread instead.
+Current release: **0.5.1**. Markdown Capture is currently installed as an
+unpacked developer-mode extension; it is not published in the Chrome Web
+Store.
 
-For a straightforward HTTP(S) URL ending in `.pdf`, or a PDF attachment open
-in Gmail's viewer, click the extension and choose **Copy PDF as Markdown**.
-Markdown Capture reads the underlying PDF locally rather than scraping the
-rendered viewer.
+## Supported captures
 
-On an article or documentation page, choose **Copy Main Content** or **Download
-Main Content**. Markdown Capture uses a locally bundled copy of Mozilla
-Readability to identify the main content, then converts that content locally
-with Turndown.
+| Source | Action | Result |
+| --- | --- | --- |
+| Reddit post | **Copy** or **Download Full Discussion** | Post metadata, body, and returned comment hierarchy |
+| Reddit comment permalink | **Copy** or **Download Comment Thread** | The selected comment and its returned replies |
+| Text-based PDF or Gmail PDF attachment | **Copy PDF as Markdown** | Basic page-by-page text with title and source URL |
+| Article or documentation page | **Copy** or **Download Main Content** | Best-effort Readability extraction converted to Markdown |
+| Selected webpage content | **Copy Selection as Markdown** from the context menu | The selected structure with absolute links and image URLs |
 
-To capture only part of an HTTP(S) page, select the content, right-click, and
-choose **Copy Selection as Markdown**. A brief badge checkmark confirms the
-copy; an exclamation mark indicates that Chrome rejected the capture or
-clipboard operation.
-
-Markdown Capture is intended to work with any Markdown editor. It does not
-require an account, send captured content to a conversion service, or target a
-specific notes application.
-
-## Why Markdown Capture exists
-
-Markdown Capture is a spiritual successor to
-[MarkDownload](https://github.com/deathau/markdownload), not a fork or an
-affiliated continuation. MarkDownload established an excellent local
-page-to-Markdown workflow, but its last upstream release was in 2024 and its
-active development has fragmented across small forks. Starting from this
-project's compact Manifest V3 Reddit exporter makes it possible to retain that
-simple workflow while adding tested, source-aware conversion incrementally.
-
-The alternatives we considered solve adjacent problems:
-
-- [Copy as Markdown](https://github.com/notlmn/copy-as-markdown) is an active,
-  MIT-licensed extension focused on selected content and context-menu actions.
-- [Obsidian Web Clipper](https://github.com/obsidianmd/obsidian-clipper) is
-  open source and powerful, but its capture workflow is designed around
-  Obsidian.
-- Markforge advertises platform-specific capture and calls itself open source,
-  but no public source repository or license was discoverable when this
-  project was researched in August 2026.
-
-Markdown Capture aims for the middle: ordinary Markdown output, local
-processing, a compact copy/download interface, and specialized adapters where
-generic page conversion loses important structure.
-
-## Features
-
-- Uses Reddit's structured `.json` representation instead of scraping the page.
-- Fetches JSON from the active Reddit tab so Reddit receives a normal same-origin browser request.
-- Includes the post title, author, subreddit, canonical URL, and body.
-- Recursively preserves the returned comment hierarchy, authors, and scores.
-- Downloads Markdown files or copies Markdown directly to the clipboard.
-- Exports all returned comments or a selected comment thread.
-- Handles link posts and deleted or removed content sensibly.
-- Ignores Reddit `more` placeholders; it does not make extra requests for missing comments.
-- Runs as a Manifest V3 extension with PDF.js bundled locally.
-- Extracts basic text from straightforward PDF URLs locally with bundled
-  PDF.js.
-- Shows source-appropriate actions instead of treating PDFs as webpages.
-- Resolves the authenticated attachment behind Gmail's PDF viewer without
-  including its internal download URL in the exported Markdown.
-- Extracts the primary content of ordinary webpages with locally bundled
-  Readability, then preserves common Markdown structures with Turndown and its
-  GFM plugin.
-- Uses the generic webpage adapter only after specialized Reddit and PDF
-  detection, so their structured exporters remain authoritative.
-- Copies selected page content as Markdown from Chrome's context menu while
-  preserving supported structure and making relative links and images absolute.
+Specialized Reddit and PDF handling takes priority over generic webpage
+capture. PDF and webpage conversion are best effort; see
+[Limitations](#limitations) before relying on layout-sensitive output.
 
 ## Install locally in Chrome
+
+Clone or download this repository first. No build step is required for normal
+use; the conversion dependencies used by Chrome are already bundled locally.
 
 1. Open `chrome://extensions`.
 2. Enable **Developer mode**.
@@ -85,9 +36,45 @@ generic page conversion loses important structure.
 6. Open a supported source and click the extension icon.
 7. Choose one of the source-specific download or copy actions.
 
-Download actions show Chrome's Save dialog. Copy actions place the Markdown on the clipboard. The popup displays progress and any error summary; inspect the service worker from `chrome://extensions` for full error details.
+Download actions show Chrome's Save dialog. Copy actions place Markdown on the
+clipboard. To capture only part of a webpage, select it, right-click, and choose
+**Copy Selection as Markdown**. A brief badge checkmark confirms the copy; an
+exclamation mark indicates a failure.
 
-After changing source files, click the extension's reload button on `chrome://extensions` before testing again.
+The popup displays progress and concise errors. For more detail, inspect the
+extension service worker from `chrome://extensions`.
+
+## How it works
+
+- Reddit capture uses the site's structured `.json` representation and fetches
+  it from the active Reddit tab as a same-origin browser request.
+- PDF capture reads the underlying bytes locally with bundled PDF.js instead of
+  scraping Chrome's rendered PDF viewer.
+- Main-content capture uses a locally bundled copy of Mozilla Readability,
+  Turndown, and its GFM plugin.
+- Selection capture reuses the webpage converter and makes relative links and
+  image sources absolute.
+- The source-aware popup shows only actions that apply to the active tab.
+- Copy and download actions share one export path and produce ordinary Markdown
+  without targeting a particular notes application.
+
+Markdown Capture uses temporary, user-invoked access to the active tab rather
+than persistent access to every website. Its permissions and development model
+are documented in [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## Why Markdown Capture exists
+
+Markdown Capture is a spiritual successor to
+[MarkDownload](https://github.com/deathau/markdownload), not a fork or an
+affiliated continuation. It aims for a middle ground between selection-focused
+copy tools and notes-app-specific web clippers: ordinary Markdown output, local
+processing, a compact copy/download interface, and specialized adapters where
+generic page conversion loses important structure.
+
+The project began as a structured Reddit exporter and is evolving through the
+phases in [ROADMAP.md](ROADMAP.md). Source-aware conversion remains deliberately
+smaller and more opinionated than a general web-scraping or note-management
+system.
 
 ## Test
 
@@ -98,21 +85,10 @@ npm install
 npm test
 ```
 
-## Project structure
-
-- `ROADMAP.md` — phased plan for adding PDF and webpage capture.
-- `manifest.json` — Manifest V3 extension configuration.
-- `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
-- `src/export.js` — shared copy and download orchestration.
-- `src/background.js` — same-origin Reddit acquisition in the active tab.
-- `src/popup.html`, `src/popup.css`, and `src/popup.js` — source-aware export menu.
-- `src/reddit.js` — URL handling and JSON-to-Markdown conversion.
-- `src/pdf.js` — pure PDF detection and basic text-to-Markdown conversion.
-- `src/pdf-capture.js` — browser-side PDF fetching and PDF.js orchestration.
-- `src/webpage.js` — pure Readability and HTML-to-Markdown conversion logic.
-- `vendor/pdfjs/` — browser-ready PDF.js runtime and license.
-- `vendor/webpage/` — browser-ready webpage converter and dependency licenses.
-- `test/` — adapter, Reddit, PDF, webpage, and shared export tests and fixtures.
+See [DEVELOPMENT.md](DEVELOPMENT.md) for the Chrome development loop, vendored
+runtime maintenance, permissions, and versioning. See
+[ROADMAP.md](ROADMAP.md) for completed phases and planned source support, and
+[CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Limitations
 
@@ -126,7 +102,7 @@ npm test
   not have lossless Markdown equivalents.
 - Selection capture is limited to HTTP(S) documents where Chrome permits
   active-tab script injection. Restricted browser pages are not supported.
-- PDF capture initially recognizes only HTTP(S) URLs whose path ends in
+- PDF capture currently recognizes only HTTP(S) URLs whose path ends in
   `.pdf` and PDF attachments opened in Gmail's standard projector viewer.
 - PDF capture supports text-based PDFs only. Scanned or image-only PDFs need
   OCR, which is not supported yet.
@@ -137,4 +113,5 @@ npm test
 - Comment-thread export is available only from a direct comment permalink.
 - Collapsed or omitted comments represented by `kind: "more"` are not expanded.
 - Media, galleries, flair, awards, and avatars are not specially formatted.
-- Very large threads are limited by the comments included in Reddit's initial JSON response.
+- Very large threads are limited by the comments included in Reddit's initial
+  JSON response.
