@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1
+
+- Added **Copy Selection as Markdown** to Chrome's selection context menu.
+- Reused the locally bundled Phase 3A converter for headings, links, images,
+  lists, quotes, tables, and code within selected content.
+- Made relative selection links and image sources absolute and handled all DOM
+  ranges exposed by Chrome for the selection.
+- Added brief success and failure badge feedback without opening the popup.
+
 ## 0.5.0
 
 - Added best-effort Markdown capture for ordinary HTTP(S) webpages, with Copy

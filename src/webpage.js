@@ -82,7 +82,7 @@ export function captureWebpageDocument(document, sourceUrl = document.URL) {
   const title = cleanText(parsed.title || document.title, 'Untitled webpage');
   const resolvedSourceUrl = canonicalUrl(document, sourceUrl);
   const body = contentToMarkdown(parsed.content, {
-    baseUrl: resolvedSourceUrl,
+    baseUrl: document.baseURI || sourceUrl,
     document
   });
   if (!body) throw new Error('The page did not contain readable content.');
@@ -93,4 +93,27 @@ export function captureWebpageDocument(document, sourceUrl = document.URL) {
     sourceUrl: resolvedSourceUrl,
     title
   };
+}
+
+export function selectionToMarkdown(document, sourceUrl = document.URL) {
+  const selection = document.getSelection();
+  if (!selection?.rangeCount || selection.isCollapsed) {
+    throw new Error('No page content is selected.');
+  }
+
+  const container = document.createElement('div');
+  for (let index = 0; index < selection.rangeCount; index += 1) {
+    const range = selection.getRangeAt(index);
+    if (range.collapsed) continue;
+    const section = document.createElement('div');
+    section.append(range.cloneContents());
+    container.append(section);
+  }
+
+  const markdown = contentToMarkdown(container.innerHTML, {
+    baseUrl: document.baseURI || sourceUrl,
+    document
+  });
+  if (!markdown) throw new Error('The selection did not contain convertible content.');
+  return markdown;
 }

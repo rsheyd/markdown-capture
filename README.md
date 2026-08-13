@@ -17,6 +17,11 @@ Main Content**. Markdown Capture uses a locally bundled copy of Mozilla
 Readability to identify the main content, then converts that content locally
 with Turndown.
 
+To capture only part of an HTTP(S) page, select the content, right-click, and
+choose **Copy Selection as Markdown**. A brief badge checkmark confirms the
+copy; an exclamation mark indicates that Chrome rejected the capture or
+clipboard operation.
+
 Markdown Capture is intended to work with any Markdown editor. It does not
 require an account, send captured content to a conversion service, or target a
 specific notes application.
@@ -67,6 +72,8 @@ generic page conversion loses important structure.
   GFM plugin.
 - Uses the generic webpage adapter only after specialized Reddit and PDF
   detection, so their structured exporters remain authoritative.
+- Copies selected page content as Markdown from Chrome's context menu while
+  preserving supported structure and making relative links and images absolute.
 
 ## Install locally in Chrome
 
@@ -117,6 +124,8 @@ npm test
 - Dynamic content that has not rendered when capture begins is not included.
 - Complex interactive components, forms, canvas content, and visual layout do
   not have lossless Markdown equivalents.
+- Selection capture is limited to HTTP(S) documents where Chrome permits
+  active-tab script injection. Restricted browser pages are not supported.
 - PDF capture initially recognizes only HTTP(S) URLs whose path ends in
   `.pdf` and PDF attachments opened in Gmail's standard projector viewer.
 - PDF capture supports text-based PDFs only. Scanned or image-only PDFs need

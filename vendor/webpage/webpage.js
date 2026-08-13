@@ -2099,6 +2099,7 @@ var MarkdownCaptureWebpage = (() => {
     captureWebpageDocument: () => captureWebpageDocument,
     contentToMarkdown: () => contentToMarkdown,
     normalizeContentUrls: () => normalizeContentUrls,
+    selectionToMarkdown: () => selectionToMarkdown,
     webpageMarkdownFilename: () => webpageMarkdownFilename
   });
   var import_readability = __toESM(require_readability(), 1);
@@ -2946,7 +2947,7 @@ ${value}
     const title = cleanText(parsed.title || document2.title, "Untitled webpage");
     const resolvedSourceUrl = canonicalUrl(document2, sourceUrl);
     const body = contentToMarkdown(parsed.content, {
-      baseUrl: resolvedSourceUrl,
+      baseUrl: document2.baseURI || sourceUrl,
       document: document2
     });
     if (!body) throw new Error("The page did not contain readable content.");
@@ -2961,6 +2962,26 @@ ${body}
       sourceUrl: resolvedSourceUrl,
       title
     };
+  }
+  function selectionToMarkdown(document2, sourceUrl = document2.URL) {
+    const selection = document2.getSelection();
+    if (!selection?.rangeCount || selection.isCollapsed) {
+      throw new Error("No page content is selected.");
+    }
+    const container = document2.createElement("div");
+    for (let index = 0; index < selection.rangeCount; index += 1) {
+      const range = selection.getRangeAt(index);
+      if (range.collapsed) continue;
+      const section = document2.createElement("div");
+      section.append(range.cloneContents());
+      container.append(section);
+    }
+    const markdown = contentToMarkdown(container.innerHTML, {
+      baseUrl: document2.baseURI || sourceUrl,
+      document: document2
+    });
+    if (!markdown) throw new Error("The selection did not contain convertible content.");
+    return markdown;
   }
   return __toCommonJS(webpage_exports);
 })();

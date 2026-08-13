@@ -130,18 +130,18 @@ Exit criteria:
   omitted.
 - Reddit still uses its structured adapter rather than the generic fallback.
 
-### Phase 3B — Add selection context-menu capture (`0.5.1`)
+### Phase 3B — Add selection context-menu capture (`0.5.1`; complete)
 
-- Add a **Copy Selection as Markdown** action to Chrome's selection context
+- [x] Add a **Copy Selection as Markdown** action to Chrome's selection context
   menu.
-- Convert the user-selected DOM through Phase 3A's shared HTML-to-Markdown
+- [x] Convert the user-selected DOM through Phase 3A's shared HTML-to-Markdown
   layer rather than introducing a second conversion path.
-- Make relative links and image sources absolute before conversion.
-- Handle selections containing multiple DOM ranges where Chrome exposes them.
-- Show concise success or failure feedback without opening the popup.
-- Keep the initial context-menu scope to selections; page links, images, and
+- [x] Make relative links and image sources absolute before conversion.
+- [x] Handle selections containing multiple DOM ranges where Chrome exposes them.
+- [x] Show concise success or failure feedback without opening the popup.
+- [x] Keep the initial context-menu scope to selections; page links, images, and
   tab lists remain out of scope.
-- Add selection-specific fixtures and pure conversion tests.
+- [x] Add selection-specific fixtures and pure conversion tests.
 
 Exit criteria:
 
