@@ -30,7 +30,7 @@ Test at least:
   unsupported-source error.
 - A selection containing headings, emphasis, a relative link, and an image.
   Test both **Copy Selection as Markdown** from the context menu and
-  `Option+Shift+M` on macOS (`Ctrl+Shift+M` elsewhere), then confirm the copied
+  `Option+Shift+M` on macOS (`Alt+Shift+M` elsewhere), then confirm the copied
   structure, absolute URLs, and brief success badge.
 - An empty or unavailable selection failure, confirming the brief failure badge
   and a useful error in the extension service-worker console.

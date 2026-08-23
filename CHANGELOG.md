@@ -2,7 +2,7 @@
 
 ## 0.6.1
 
-- Added `Option+Shift+M` on macOS and `Ctrl+Shift+M` elsewhere to copy the
+- Added `Option+Shift+M` on macOS and `Alt+Shift+M` elsewhere to copy the
   current webpage selection as Markdown, including selections inside frames
   where Chrome permits active-tab access.
 - Displayed the platform-specific keyboard shortcut in the selection context

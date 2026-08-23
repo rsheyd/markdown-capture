@@ -21,7 +21,7 @@
   "commands": {
     "copy-selection-markdown": {
       "suggested_key": {
-        "default": "Ctrl+Shift+M",
+        "default": "Alt+Shift+M",
         "mac": "Option+Shift+M"
       },
       "description": "Copy the current selection as Markdown"

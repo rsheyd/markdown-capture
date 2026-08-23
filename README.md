@@ -18,7 +18,7 @@ Store.
 | Text-based PDF or Gmail PDF attachment | **Copy PDF as Markdown** | Basic page-by-page text with title and source URL |
 | Article or documentation page | **Copy Main Content** | Best-effort Readability extraction converted to Markdown |
 | Discussion, listing, or application-style page | **Copy** or **Download Full Page Content** | Rendered content from the page's main region with common controls removed |
-| Selected webpage content | Press `Option+Shift+M` on macOS, `Ctrl+Shift+M` elsewhere, or choose **Copy Selection as Markdown** from the context menu | The selected structure with absolute links and image URLs |
+| Selected webpage content | Press `Option+Shift+M` on macOS, `Alt+Shift+M` elsewhere, or choose **Copy Selection as Markdown** from the context menu | The selected structure with absolute links and image URLs |
 
 Specialized Reddit and PDF handling takes priority over generic webpage
 capture. PDF and webpage conversion are best effort; see
@@ -39,7 +39,7 @@ use; the conversion dependencies used by Chrome are already bundled locally.
 
 Download actions show Chrome's Save dialog. Copy actions place Markdown on the
 clipboard. To capture only part of a webpage, select it and press
-`Option+Shift+M` on macOS or `Ctrl+Shift+M` elsewhere. The context menu's
+`Option+Shift+M` on macOS or `Alt+Shift+M` elsewhere. The context menu's
 **Copy Selection as Markdown** action remains available. A brief badge
 checkmark confirms the copy; an exclamation mark indicates a failure. Chrome
 shortcuts can be changed at `chrome://extensions/shortcuts`.

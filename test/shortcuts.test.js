@@ -15,10 +15,10 @@ test('formats the selection shortcut for macOS context menus', () => {
 
 test('formats the selection shortcut for other platforms', () => {
   for (const os of ['win', 'linux', 'cros', 'openbsd']) {
-    assert.equal(selectionShortcutLabel(os), 'Ctrl+Shift+M');
+    assert.equal(selectionShortcutLabel(os), 'Alt+Shift+M');
     assert.equal(
       selectionContextMenuTitle(os),
-      'Copy Selection as Markdown (Ctrl+Shift+M)'
+      'Copy Selection as Markdown (Alt+Shift+M)'
     );
   }
 });
