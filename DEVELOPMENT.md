@@ -29,8 +29,9 @@ Test at least:
 - A restricted URL such as `chrome://extensions`, which should show an
   unsupported-source error.
 - A selection containing headings, emphasis, a relative link, and an image.
-  Right-click and choose **Copy Selection as Markdown**, then confirm the
-  copied structure, absolute URLs, and brief success badge.
+  Test both **Copy Selection as Markdown** from the context menu and
+  `Option+Shift+M` on macOS (`Ctrl+Shift+M` elsewhere), then confirm the copied
+  structure, absolute URLs, and brief success badge.
 - An empty or unavailable selection failure, confirming the brief failure badge
   and a useful error in the extension service-worker console.
 - A public text-based `.pdf` URL, which should show only the PDF copy action.

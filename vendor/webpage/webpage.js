@@ -2096,6 +2096,7 @@ var MarkdownCaptureWebpage = (() => {
   // src/webpage.js
   var webpage_exports = {};
   __export(webpage_exports, {
+    captureFullPageDocument: () => captureFullPageDocument,
     captureWebpageDocument: () => captureWebpageDocument,
     contentToMarkdown: () => contentToMarkdown,
     normalizeContentUrls: () => normalizeContentUrls,
@@ -2939,14 +2940,10 @@ ${value}
     const value = document2.querySelector('link[rel~="canonical"]')?.getAttribute("href");
     return absoluteUrl(value, fallbackUrl) || fallbackUrl;
   }
-  function captureWebpageDocument(document2, sourceUrl = document2.URL) {
-    const parsed = new import_readability.Readability(document2.cloneNode(true)).parse();
-    if (!parsed?.content) {
-      throw new Error("Could not identify the main content on this page.");
-    }
-    const title = cleanText(parsed.title || document2.title, "Untitled webpage");
+  function webpageResult(document2, sourceUrl, content, parsedTitle) {
+    const title = cleanText(parsedTitle || document2.title, "Untitled webpage");
     const resolvedSourceUrl = canonicalUrl(document2, sourceUrl);
-    const body = contentToMarkdown(parsed.content, {
+    const body = contentToMarkdown(content, {
       baseUrl: document2.baseURI || sourceUrl,
       document: document2
     });
@@ -2962,6 +2959,90 @@ ${body}
       sourceUrl: resolvedSourceUrl,
       title
     };
+  }
+  function normalizedWords(value) {
+    return new Set(cleanText(value).toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
+  }
+  function substantiallyMatchesTitle(heading, title) {
+    const headingWords = normalizedWords(heading);
+    const titleWords = normalizedWords(title);
+    if (headingWords.size < 4 || !titleWords.size) return false;
+    let shared = 0;
+    for (const word of headingWords) {
+      if (titleWords.has(word)) shared += 1;
+    }
+    return shared / headingWords.size >= 0.8;
+  }
+  function removeVisuallyHiddenContent(source, clone, document2) {
+    const getComputedStyle = document2.defaultView?.getComputedStyle;
+    if (!getComputedStyle) return;
+    const sourceElements = [...source.querySelectorAll("*")];
+    const clonedElements = [...clone.querySelectorAll("*")];
+    sourceElements.forEach((element, index) => {
+      const style = getComputedStyle(element);
+      if (style.display === "none" || style.visibility === "hidden") {
+        clonedElements[index]?.remove();
+      }
+    });
+  }
+  function removeAdjacentDuplicateLinks(root2) {
+    root2.querySelectorAll("a + a").forEach((link) => {
+      const previous = link.previousElementSibling;
+      const text = cleanText(link.textContent);
+      if (text && text.length <= 120 && text === cleanText(previous?.textContent) && link.getAttribute("href") === previous?.getAttribute("href")) {
+        link.remove();
+      }
+    });
+  }
+  function pruneEmptyContent(root2) {
+    const selector = "h1,h2,h3,h4,h5,h6,p,li,div,section,article,header,footer";
+    [...root2.querySelectorAll(selector)].reverse().forEach((node) => {
+      if (!cleanText(node.textContent) && !node.querySelector("img,video,audio,table,pre,hr")) {
+        node.remove();
+      }
+    });
+  }
+  function captureWebpageDocument(document2, sourceUrl = document2.URL) {
+    const parsed = new import_readability.Readability(document2.cloneNode(true)).parse();
+    if (!parsed?.content) {
+      throw new Error("Could not identify the main content on this page.");
+    }
+    return webpageResult(document2, sourceUrl, parsed.content, parsed.title);
+  }
+  function captureFullPageDocument(document2, sourceUrl = document2.URL) {
+    const source = document2.querySelector("main") || document2.body;
+    if (!source) throw new Error("The page did not contain capturable content.");
+    const content = source.cloneNode(true);
+    removeVisuallyHiddenContent(source, content, document2);
+    content.querySelectorAll([
+      "script",
+      "style",
+      "noscript",
+      "template",
+      "nav",
+      "form",
+      "button",
+      "input",
+      "select",
+      "textarea",
+      "dialog",
+      "menu",
+      '[contenteditable]:not([contenteditable="false"])',
+      "[hidden]",
+      '[aria-hidden="true"]',
+      '[role="navigation"]',
+      '[role="dialog"]',
+      '[role="menu"]',
+      '[role="menubar"]',
+      '[role="textbox"]'
+    ].join(",")).forEach((node) => node.remove());
+    const firstHeading = content.querySelector("h1,h2");
+    if (firstHeading && substantiallyMatchesTitle(firstHeading.textContent, document2.title)) {
+      firstHeading.remove();
+    }
+    removeAdjacentDuplicateLinks(content);
+    pruneEmptyContent(content);
+    return webpageResult(document2, sourceUrl, content.innerHTML, document2.title);
   }
   function selectionToMarkdown(document2, sourceUrl = document2.URL) {
     const selection = document2.getSelection();

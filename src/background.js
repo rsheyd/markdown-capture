@@ -1,3 +1,6 @@
+import { extractSelection } from './selection.js';
+import { selectionContextMenuTitle } from './shortcuts.js';
+
 async function fetchRedditJson(tabId, jsonUrl) {
   const injectionResults = await chrome.scripting.executeScript({
     target: { tabId },
@@ -32,10 +35,13 @@ async function fetchRedditJson(tabId, jsonUrl) {
 const SELECTION_MENU_ID = 'copy-selection-markdown';
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.removeAll()
-    .then(() => chrome.contextMenus.create({
+  Promise.all([
+    chrome.contextMenus.removeAll(),
+    chrome.runtime.getPlatformInfo()
+  ])
+    .then(([, platform]) => chrome.contextMenus.create({
       id: SELECTION_MENU_ID,
-      title: 'Copy Selection as Markdown',
+      title: selectionContextMenuTitle(platform.os),
       contexts: ['selection'],
       documentUrlPatterns: ['http://*/*', 'https://*/*']
     }))
@@ -53,47 +59,132 @@ async function showSelectionBadge(success) {
   }, 2500);
 }
 
-async function copySelectionAsMarkdown(info, tab) {
-  if (!tab?.id) throw new Error('The selected tab is unavailable.');
-  const target = Number.isInteger(info.frameId)
-    ? { tabId: tab.id, frameIds: [info.frameId] }
-    : { tabId: tab.id };
-  const sourceUrl = info.frameUrl || tab.url;
-
-  await chrome.scripting.executeScript({
-    target,
-    files: ['vendor/webpage/webpage.js']
-  });
+async function writeTextInTab(text, tabId, frameId) {
+  const target = Number.isInteger(frameId)
+    ? { tabId, frameIds: [frameId] }
+    : { tabId };
   const results = await chrome.scripting.executeScript({
     target,
-    func: async url => {
-      const markdown = globalThis.MarkdownCaptureWebpage.selectionToMarkdown(document, url);
+    func: async value => {
       try {
-        await navigator.clipboard.writeText(markdown);
+        await navigator.clipboard.writeText(value);
       } catch {
         const textarea = document.createElement('textarea');
-        textarea.value = markdown;
+        textarea.value = value;
         textarea.setAttribute('readonly', '');
         textarea.style.cssText = 'position:fixed;left:-9999px;opacity:0';
         document.documentElement.append(textarea);
         textarea.select();
         const copied = document.execCommand('copy');
         textarea.remove();
-        if (!copied) throw new Error('Chrome did not allow the selection to be copied.');
+        if (!copied) throw new Error('Chrome did not allow text to be copied.');
       }
       return true;
     },
-    args: [sourceUrl]
+    args: [text]
   });
-  if (!results[0]?.result) throw new Error('The selected content was not copied.');
+  if (!results[0]?.result) throw new Error('The text was not copied.');
+}
+
+async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml, selectionText }) {
+  const target = Number.isInteger(frameId)
+    ? { tabId, frameIds: [frameId] }
+    : { tabId };
+  let markdown = '';
+  if (selectionHtml) {
+    await chrome.scripting.executeScript({
+      target,
+      files: ['vendor/webpage/webpage.js']
+    });
+    const conversionResults = await chrome.scripting.executeScript({
+      target,
+      func: (html, url) => globalThis.MarkdownCaptureWebpage.contentToMarkdown(html, {
+        baseUrl: document.baseURI || url,
+        document
+      }),
+      args: [selectionHtml, sourceUrl]
+    });
+    markdown = conversionResults[0]?.result || '';
+  }
+  const mode = markdown ? 'html' : 'plain-text-fallback';
+  markdown ||= selectionText?.trim();
+  if (!markdown) throw new Error('The selection did not produce Markdown.');
+  console.info('Selection Markdown capture', {
+    frameId,
+    htmlLength: selectionHtml?.length || 0,
+    mode,
+    sourceUrl
+  });
+  await writeTextInTab(markdown, tabId, frameId);
+}
+
+async function copySelectionAsMarkdown(info, tab) {
+  if (!tab?.id) throw new Error('The selected tab is unavailable.');
+  const target = Number.isInteger(info.frameId)
+    ? { tabId: tab.id, frameIds: [info.frameId] }
+    : { tabId: tab.id };
+  const selectionResults = await chrome.scripting.executeScript({
+    target,
+    func: extractSelection,
+    injectImmediately: true
+  });
+  const selection = selectionResults[0]?.result;
+  return copyCapturedSelection({
+    tabId: tab.id,
+    frameId: info.frameId,
+    sourceUrl: info.frameUrl || tab.url,
+    selectionHtml: selection?.html,
+    selectionText: selection?.text || info.selectionText
+  });
+}
+
+async function copyActiveSelectionAsMarkdown() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) throw new Error('The selected tab is unavailable.');
+  const results = await chrome.scripting.executeScript({
+    target: { tabId: tab.id, allFrames: true },
+    func: extractSelection,
+    injectImmediately: true
+  });
+  const selectedFrame = results.find(result => result.result);
+  if (!selectedFrame) throw new Error('Select some webpage content first.');
+  return copyCapturedSelection({
+    tabId: tab.id,
+    frameId: selectedFrame.frameId,
+    sourceUrl: selectedFrame.result.sourceUrl || tab.url,
+    selectionHtml: selectedFrame.result.html,
+    selectionText: selectedFrame.result.text
+  });
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== SELECTION_MENU_ID) return;
   copySelectionAsMarkdown(info, tab)
     .then(() => showSelectionBadge(true))
-    .catch(error => {
+    .catch(async error => {
       console.error('Selection Markdown copy failed', error);
+      try {
+        if (tab?.id) {
+          const sourceUrl = info.frameUrl || tab.url || 'unknown URL';
+          await writeTextInTab(
+            `Markdown Capture error: ${error.message}\nURL: ${sourceUrl}`,
+            tab.id,
+            info.frameId
+          );
+        }
+      } catch (clipboardError) {
+        console.error('Could not copy the selection error', clipboardError);
+      }
+      return showSelectionBadge(false);
+    });
+});
+
+chrome.commands.onCommand.addListener(command => {
+  if (command !== SELECTION_MENU_ID) return;
+  copyActiveSelectionAsMarkdown()
+    .then(() => showSelectionBadge(true))
+    .catch(error => {
+      console.error('Keyboard selection Markdown copy failed', error);
       return showSelectionBadge(false);
     });
 });

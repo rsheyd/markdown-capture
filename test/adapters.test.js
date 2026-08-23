@@ -43,10 +43,11 @@ test('detects direct and Gmail-viewer PDFs', () => {
 test('uses a generic fallback for HTTP pages and rejects restricted schemes', () => {
   const source = detectSource({ url: 'https://example.com/article' });
   assert.equal(source.id, 'webpage');
-  assert.equal(source.label, 'Article or document (best effort)');
+  assert.equal(source.label, 'Webpage (best effort)');
   assert.deepEqual(source.actions.map(action => action.label), [
-    'Download Main Content',
-    'Copy Main Content'
+    'Copy Main Content',
+    'Copy Full Page Content',
+    'Download Full Page Content'
   ]);
   assert.equal(detectSource({ url: 'chrome://extensions/' }), null);
   assert.equal(getAdapter('unknown'), null);
@@ -121,10 +122,12 @@ test('webpage adapter delegates active-tab acquisition', async () => {
     sourceUrl: tab.url,
     title: 'Article'
   };
-  const result = await getAdapter(source.id).capture({ tab }, {
-    captureWebpage: async (tabId, sourceUrl) => {
+  const action = getSourceAction(source, 'webpage-full-copy');
+  const result = await getAdapter(source.id).capture({ tab, action }, {
+    captureWebpage: async (tabId, sourceUrl, mode) => {
       assert.equal(tabId, tab.id);
       assert.equal(sourceUrl, tab.url);
+      assert.equal(mode, 'full');
       return expected;
     }
   });

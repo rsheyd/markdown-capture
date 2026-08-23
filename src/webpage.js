@@ -73,15 +73,10 @@ function canonicalUrl(document, fallbackUrl) {
   return absoluteUrl(value, fallbackUrl) || fallbackUrl;
 }
 
-export function captureWebpageDocument(document, sourceUrl = document.URL) {
-  const parsed = new Readability(document.cloneNode(true)).parse();
-  if (!parsed?.content) {
-    throw new Error('Could not identify the main content on this page.');
-  }
-
-  const title = cleanText(parsed.title || document.title, 'Untitled webpage');
+function webpageResult(document, sourceUrl, content, parsedTitle) {
+  const title = cleanText(parsedTitle || document.title, 'Untitled webpage');
   const resolvedSourceUrl = canonicalUrl(document, sourceUrl);
-  const body = contentToMarkdown(parsed.content, {
+  const body = contentToMarkdown(content, {
     baseUrl: document.baseURI || sourceUrl,
     document
   });
@@ -93,6 +88,102 @@ export function captureWebpageDocument(document, sourceUrl = document.URL) {
     sourceUrl: resolvedSourceUrl,
     title
   };
+}
+
+function normalizedWords(value) {
+  return new Set(cleanText(value).toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
+}
+
+function substantiallyMatchesTitle(heading, title) {
+  const headingWords = normalizedWords(heading);
+  const titleWords = normalizedWords(title);
+  if (headingWords.size < 4 || !titleWords.size) return false;
+  let shared = 0;
+  for (const word of headingWords) {
+    if (titleWords.has(word)) shared += 1;
+  }
+  return shared / headingWords.size >= 0.8;
+}
+
+function removeVisuallyHiddenContent(source, clone, document) {
+  const getComputedStyle = document.defaultView?.getComputedStyle;
+  if (!getComputedStyle) return;
+  const sourceElements = [...source.querySelectorAll('*')];
+  const clonedElements = [...clone.querySelectorAll('*')];
+  sourceElements.forEach((element, index) => {
+    const style = getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden') {
+      clonedElements[index]?.remove();
+    }
+  });
+}
+
+function removeAdjacentDuplicateLinks(root) {
+  root.querySelectorAll('a + a').forEach(link => {
+    const previous = link.previousElementSibling;
+    const text = cleanText(link.textContent);
+    if (text && text.length <= 120 && text === cleanText(previous?.textContent)
+      && link.getAttribute('href') === previous?.getAttribute('href')) {
+      link.remove();
+    }
+  });
+}
+
+function pruneEmptyContent(root) {
+  const selector = 'h1,h2,h3,h4,h5,h6,p,li,div,section,article,header,footer';
+  [...root.querySelectorAll(selector)].reverse().forEach(node => {
+    if (!cleanText(node.textContent) && !node.querySelector('img,video,audio,table,pre,hr')) {
+      node.remove();
+    }
+  });
+}
+
+export function captureWebpageDocument(document, sourceUrl = document.URL) {
+  const parsed = new Readability(document.cloneNode(true)).parse();
+  if (!parsed?.content) {
+    throw new Error('Could not identify the main content on this page.');
+  }
+
+  return webpageResult(document, sourceUrl, parsed.content, parsed.title);
+}
+
+export function captureFullPageDocument(document, sourceUrl = document.URL) {
+  const source = document.querySelector('main') || document.body;
+  if (!source) throw new Error('The page did not contain capturable content.');
+
+  const content = source.cloneNode(true);
+  removeVisuallyHiddenContent(source, content, document);
+  content.querySelectorAll([
+    'script',
+    'style',
+    'noscript',
+    'template',
+    'nav',
+    'form',
+    'button',
+    'input',
+    'select',
+    'textarea',
+    'dialog',
+    'menu',
+    '[contenteditable]:not([contenteditable="false"])',
+    '[hidden]',
+    '[aria-hidden="true"]',
+    '[role="navigation"]',
+    '[role="dialog"]',
+    '[role="menu"]',
+    '[role="menubar"]',
+    '[role="textbox"]'
+  ].join(',')).forEach(node => node.remove());
+
+  const firstHeading = content.querySelector('h1,h2');
+  if (firstHeading && substantiallyMatchesTitle(firstHeading.textContent, document.title)) {
+    firstHeading.remove();
+  }
+  removeAdjacentDuplicateLinks(content);
+  pruneEmptyContent(content);
+
+  return webpageResult(document, sourceUrl, content.innerHTML, document.title);
 }
 
 export function selectionToMarkdown(document, sourceUrl = document.URL) {

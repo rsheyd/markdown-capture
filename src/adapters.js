@@ -84,7 +84,7 @@ const pdfAdapter = {
 
 const webpageAdapter = {
   id: 'webpage',
-  label: 'Article or document (best effort)',
+  label: 'Webpage (best effort)',
 
   detect(tab) {
     if (!tab?.url) return null;
@@ -98,13 +98,14 @@ const webpageAdapter = {
 
   actions() {
     return [
-      action('webpage-download', 'Download Main Content', 'download'),
-      action('webpage-copy', 'Copy Main Content', 'copy')
+      action('webpage-copy', 'Copy Main Content', 'copy', { mode: 'main' }),
+      action('webpage-full-copy', 'Copy Full Page Content', 'copy', { mode: 'full' }),
+      action('webpage-full-download', 'Download Full Page Content', 'download', { mode: 'full' })
     ];
   },
 
-  capture({ tab }, dependencies) {
-    return dependencies.captureWebpage(tab.id, tab.url);
+  capture({ tab, action: selectedAction }, dependencies) {
+    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode);
   }
 };
 

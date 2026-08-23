@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import {
+  captureFullPageDocument,
   captureWebpageDocument,
   contentToMarkdown,
   selectionToMarkdown,
@@ -25,6 +26,20 @@ test('extracts article content while omitting page chrome and normalizing URLs',
   assert.match(result.markdown, /\[A current survey map\]\(https:\/\/example\.com\/maps\/marsh\.pdf\)/);
   assert.match(result.markdown, /!\[A tidal marsh at low water\]\(https:\/\/example\.com\/images\/marsh\.jpg\)/);
   assert.doesNotMatch(result.markdown, /Pricing|Cookie settings/);
+});
+
+test('captures full multi-region page content with conservative generic cleanup', async () => {
+  const document = await fixture('webpage-discussion.html', 'https://example.com/issues/38');
+  document.title = 'Example issue with enough title words · Issue tracker';
+  const result = captureFullPageDocument(document);
+
+  assert.match(result.markdown, /Original issue body/);
+  assert.match(result.markdown, /First useful comment/);
+  assert.match(result.markdown, /Second useful comment/);
+  assert.match(result.markdown, /Important compatibility note/);
+  assert.equal(result.markdown.match(/New issue/g)?.length, 1);
+  assert.equal(result.markdown.match(/Example issue with enough title words/g)?.length, 1);
+  assert.doesNotMatch(result.markdown, /Repository navigation|Submit comment|Draft reply|Draft inline editor|Hidden keyboard instructions/);
 });
 
 test('preserves fenced code blocks and inline code from documentation', async () => {
@@ -76,6 +91,7 @@ test('checked-in browser bundle exposes the converter and captures a fixture', a
   const result = dom.window.MarkdownCaptureWebpage.captureWebpageDocument(dom.window.document);
   assert.equal(result.title, 'Field Notes: Tidal Marshes');
   assert.match(result.markdown, /Salt marshes sit between land and sea/);
+  assert.equal(typeof dom.window.MarkdownCaptureWebpage.captureFullPageDocument, 'function');
 
   const paragraph = dom.window.document.querySelector('article p');
   const range = dom.window.document.createRange();

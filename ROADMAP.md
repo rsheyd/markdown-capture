@@ -154,6 +154,12 @@ Exit criteria:
 
 ### Phase 3C — Capture listing and application-style pages
 
+Initial generic support shipped in `0.6.0` as explicitly labeled **Copy Full
+Page Content** and **Download Full Page Content** actions. It converts the
+semantic main region with conservative control cleanup while retaining the
+Readability path for **Copy Main Content**. Broader search and news fixtures
+remain before this phase is complete.
+
 - Add representative fixtures for search results, news homepages, feeds, and
   other pages composed of repeated result cards rather than one article body.
 - Compare a generic visible-page conversion mode with specialized adapters for

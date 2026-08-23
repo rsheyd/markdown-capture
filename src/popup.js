@@ -28,15 +28,17 @@ const dependencies = {
     return capturePdfAsMarkdown(options);
   },
 
-  async captureWebpage(tabId, sourceUrl) {
+  async captureWebpage(tabId, sourceUrl, mode) {
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ['vendor/webpage/webpage.js']
     });
     const results = await chrome.scripting.executeScript({
       target: { tabId },
-      func: url => globalThis.MarkdownCaptureWebpage.captureWebpageDocument(document, url),
-      args: [sourceUrl]
+      func: (url, captureMode) => captureMode === 'full'
+        ? globalThis.MarkdownCaptureWebpage.captureFullPageDocument(document, url)
+        : globalThis.MarkdownCaptureWebpage.captureWebpageDocument(document, url),
+      args: [sourceUrl, mode]
     });
     const result = results[0]?.result;
     if (!result) throw new Error('The web page did not return captured content.');

@@ -5,7 +5,7 @@ content as clean Markdown. It works with any Markdown editor, requires no
 account, and performs conversion in the browser without sending captured
 content to a hosted service.
 
-Current release: **0.5.1**. Markdown Capture is currently installed as an
+Current release: **0.6.1**. Markdown Capture is currently installed as an
 unpacked developer-mode extension; it is not published in the Chrome Web
 Store.
 
@@ -16,8 +16,9 @@ Store.
 | Reddit post | **Copy** or **Download Full Discussion** | Post metadata, body, and returned comment hierarchy |
 | Reddit comment permalink | **Copy** or **Download Comment Thread** | The selected comment and its returned replies |
 | Text-based PDF or Gmail PDF attachment | **Copy PDF as Markdown** | Basic page-by-page text with title and source URL |
-| Article or documentation page | **Copy** or **Download Main Content** | Best-effort Readability extraction converted to Markdown |
-| Selected webpage content | **Copy Selection as Markdown** from the context menu | The selected structure with absolute links and image URLs |
+| Article or documentation page | **Copy Main Content** | Best-effort Readability extraction converted to Markdown |
+| Discussion, listing, or application-style page | **Copy** or **Download Full Page Content** | Rendered content from the page's main region with common controls removed |
+| Selected webpage content | Press `Option+Shift+M` on macOS, `Ctrl+Shift+M` elsewhere, or choose **Copy Selection as Markdown** from the context menu | The selected structure with absolute links and image URLs |
 
 Specialized Reddit and PDF handling takes priority over generic webpage
 capture. PDF and webpage conversion are best effort; see
@@ -37,9 +38,11 @@ use; the conversion dependencies used by Chrome are already bundled locally.
 7. Choose one of the source-specific download or copy actions.
 
 Download actions show Chrome's Save dialog. Copy actions place Markdown on the
-clipboard. To capture only part of a webpage, select it, right-click, and choose
-**Copy Selection as Markdown**. A brief badge checkmark confirms the copy; an
-exclamation mark indicates a failure.
+clipboard. To capture only part of a webpage, select it and press
+`Option+Shift+M` on macOS or `Ctrl+Shift+M` elsewhere. The context menu's
+**Copy Selection as Markdown** action remains available. A brief badge
+checkmark confirms the copy; an exclamation mark indicates a failure. Chrome
+shortcuts can be changed at `chrome://extensions/shortcuts`.
 
 The popup displays progress and concise errors. For more detail, inspect the
 extension service worker from `chrome://extensions`.
@@ -52,6 +55,9 @@ extension service worker from `chrome://extensions`.
   scraping Chrome's rendered PDF viewer.
 - Main-content capture uses a locally bundled copy of Mozilla Readability,
   Turndown, and its GFM plugin.
+- Full-page capture converts the semantic main region (or the document body as
+  a fallback) after removing common navigation, forms, controls, dialogs, and
+  hidden elements.
 - Selection capture reuses the webpage converter and makes relative links and
   image sources absolute.
 - The source-aware popup shows only actions that apply to the active tab.
@@ -76,6 +82,11 @@ phases in [ROADMAP.md](ROADMAP.md). Source-aware conversion remains deliberately
 smaller and more opinionated than a general web-scraping or note-management
 system.
 
+The immediate selection-HTML capture approach was informed by the MIT-licensed
+[Copy as Markdown](https://github.com/yorkxin/copy-as-markdown) extension. Its
+source was especially useful for avoiding selection loss on dynamic pages
+while retaining temporary `activeTab` access.
+
 ## Test
 
 Requires Node.js 18 or newer.
@@ -94,9 +105,8 @@ runtime maintenance, permissions, and versioning. See
 
 - Generic webpage capture is best effort. Readability may omit content on
   application-style pages or choose the wrong region on unusual layouts.
-- Search results, news homepages, feeds, dashboards, and other collections of
-  repeated cards are not reliably supported yet because they do not have one
-  dominant article body.
+- Full-page capture can preserve repeated cards and discussion comments, but
+  site-specific interface text may remain and visual groupings may be flattened.
 - Dynamic content that has not rendered when capture begins is not included.
 - Complex interactive components, forms, canvas content, and visual layout do
   not have lossless Markdown equivalents.

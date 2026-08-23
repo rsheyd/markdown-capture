@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.6.1
+
+- Added `Option+Shift+M` on macOS and `Ctrl+Shift+M` elsewhere to copy the
+  current webpage selection as Markdown, including selections inside frames
+  where Chrome permits active-tab access.
+- Displayed the platform-specific keyboard shortcut in the selection context
+  menu label.
+
+## 0.6.0
+
+- Added **Copy Full Page Content** and **Download Full Page Content** for
+  discussions, listings, and other multi-region pages that Readability may
+  reduce to a single content block.
+- Kept **Copy Main Content** as the cleaner Readability-based article path and
+  removed the less-used **Download Main Content** action.
+- Excluded common navigation, forms, controls, dialogs, and hidden elements
+  from full-page capture while preserving rendered content within the page's
+  semantic main region.
+- Conservatively removed editable and visually hidden interface content,
+  duplicate leading titles, empty wrappers, and adjacent duplicate links while
+  preserving meaningful secondary content such as notes and asides.
+
+## 0.5.2
+
+- Copied selection-capture error messages to the clipboard when possible, so a
+  failed capture does not silently leave unrelated clipboard contents behind;
+  diagnostics include the page or frame URL where capture was invoked.
+- Fell back to Chrome's plain-text selection snapshot when a dynamic page no
+  longer exposes its selected DOM range by the time conversion runs.
+- Captured selected HTML before loading the conversion bundle, preserving links
+  and block structure on dynamic pages such as LinkedIn. This approach was
+  informed by the MIT-licensed Copy as Markdown extension.
+- Requested immediate selection-script injection and logged content-free
+  capture diagnostics to distinguish HTML conversion from plain-text fallback.
+
 ## 0.5.1
 
 - Added **Copy Selection as Markdown** to Chrome's selection context menu.
