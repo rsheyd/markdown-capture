@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "package": "node scripts/package-extension.js",
     "test": "node --test",
     "vendor:webpage": "esbuild src/webpage.js --bundle --format=iife --global-name=MarkdownCaptureWebpage --legal-comments=linked --outfile=vendor/webpage/webpage.js"
   },

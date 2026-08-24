@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280">
+  <rect width="440" height="280" rx="20" fill="#f4f7fa"/>
+  <rect x="28" y="28" width="88" height="88" rx="20" fill="#17324d"/>
+  <path d="M43 52h16l13 17 13-17h16v40H86V72L72 89 58 72v20H43z" fill="#fff"/>
+  <path d="M89 77v13h-7l11 11 11-11h-7V77z" fill="#55d6be"/>
+  <text x="28" y="162" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#17324d">Markdown Capture</text>
+  <text x="28" y="198" font-family="Arial, sans-serif" font-size="18" fill="#496176">Web content → clean Markdown</text>
+  <text x="28" y="230" font-family="Arial, sans-serif" font-size="15" fill="#60788c">Local-first · No account · No analytics</text>
+</svg>

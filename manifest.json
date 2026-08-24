@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Markdown Capture",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Capture supported web content as clean Markdown.",
   "permissions": [
     "activeTab",
@@ -10,9 +10,19 @@
     "downloads",
     "scripting"
   ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "action": {
     "default_title": "Capture as Markdown",
-    "default_popup": "src/popup.html"
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "background": {
     "service_worker": "src/background.js",

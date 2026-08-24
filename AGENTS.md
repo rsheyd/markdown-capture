@@ -26,6 +26,8 @@
 - `README.md` — purpose, installation, usage, and limitations.
 - `CHANGELOG.md` — user-visible changes organized by extension version.
 - `DEVELOPMENT.md` — local Chrome loop, tests, smoke checks, and versioning.
+- `PRIVACY.md` — public privacy policy for users and the Chrome Web Store.
+- `STORE-LISTING.md` — Web Store copy, disclosures, asset map, and submission checklist.
 - `ROADMAP.md` — phased plan for evolving into a multi-source Markdown exporter.
 - `manifest.json` — extension permissions and service-worker entry point.
 - `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
@@ -41,6 +43,9 @@
 - `src/selection.js` — immediate, pure selected-DOM extraction before conversion dependencies load.
 - `src/shortcuts.js` — platform-specific shortcut labels for Chrome UI surfaces.
 - `src/webpage.js` — pure Readability and HTML-to-Markdown conversion logic.
+- `icons/` — packaged extension icons in Chrome-required PNG sizes.
+- `scripts/package-extension.js` — validates and creates the Web Store upload ZIP.
+- `store-assets/` — listing-only promotional graphics and their editable sources.
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
 - `vendor/webpage/` — bundled webpage converter, licenses, and update notes.
 - `test/pdf.test.js` — PDF detection, conversion, and fixture extraction tests.

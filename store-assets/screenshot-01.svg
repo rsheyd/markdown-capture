@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
+  <rect width="1280" height="800" fill="#edf2f6"/>
+  <text x="80" y="100" font-family="Arial, sans-serif" font-size="44" font-weight="700" fill="#17324d">Choose the content. Get clean Markdown.</text>
+  <text x="80" y="146" font-family="Arial, sans-serif" font-size="22" fill="#5a7186">A compact, source-aware menu keeps capture quick and local.</text>
+  <rect x="80" y="205" width="700" height="500" rx="16" fill="#fff" stroke="#d4dee7" stroke-width="2"/>
+  <circle cx="112" cy="237" r="7" fill="#ff6b6b"/><circle cx="136" cy="237" r="7" fill="#ffd166"/><circle cx="160" cy="237" r="7" fill="#55d6be"/>
+  <rect x="190" y="220" width="550" height="34" rx="9" fill="#f0f4f7"/>
+  <text x="210" y="243" font-family="Arial, sans-serif" font-size="14" fill="#71869a">example.com/a-useful-article</text>
+  <text x="126" y="323" font-family="Georgia,serif" font-size="36" font-weight="700" fill="#233746">A useful article</text>
+  <rect x="126" y="356" width="550" height="13" rx="6" fill="#dce5eb"/><rect x="126" y="386" width="590" height="13" rx="6" fill="#dce5eb"/><rect x="126" y="416" width="520" height="13" rx="6" fill="#dce5eb"/>
+  <text x="126" y="482" font-family="Georgia,serif" font-size="25" font-weight="700" fill="#233746">Keep the structure</text>
+  <rect x="126" y="510" width="580" height="12" rx="6" fill="#dce5eb"/><rect x="126" y="538" width="510" height="12" rx="6" fill="#dce5eb"/>
+  <rect x="126" y="588" width="340" height="70" rx="8" fill="#f2f5f7"/><text x="148" y="630" font-family="Courier, monospace" font-size="17" fill="#36536b">## Links, lists, tables, code</text>
+  <rect x="830" y="230" width="370" height="300" rx="14" fill="#fff" stroke="#cbd7e0" stroke-width="2"/>
+  <text x="862" y="278" font-family="Arial, sans-serif" font-size="20" font-weight="650" fill="#172b3a">Webpage</text>
+  <text x="862" y="326" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#6b7280">MAIN CONTENT</text>
+  <rect x="850" y="342" width="330" height="50" rx="7" fill="#e9f5f2"/>
+  <text x="870" y="374" font-family="Arial, sans-serif" font-size="18" fill="#17324d">Copy Main Content</text>
+  <text x="862" y="430" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#6b7280">FULL PAGE</text>
+  <text x="870" y="472" font-family="Arial, sans-serif" font-size="18" fill="#17324d">Download Full Page Content</text>
+  <text x="830" y="590" font-family="Arial, sans-serif" font-size="22" font-weight="650" fill="#17324d">Works with articles, selections,</text>
+  <text x="830" y="625" font-family="Arial, sans-serif" font-size="22" font-weight="650" fill="#17324d">Reddit discussions, and PDFs.</text>
+  <text x="830" y="677" font-family="Arial, sans-serif" font-size="17" fill="#5a7186">Content stays in your browser.</text>
+</svg>

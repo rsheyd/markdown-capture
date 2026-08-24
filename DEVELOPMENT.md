@@ -66,6 +66,24 @@ The extension has a single version source: the `version` field in `manifest.json
 
 Update `manifest.json`, run the tests, and complete the manual smoke checks above before creating a release.
 
+## Release packaging
+
+Run the automated tests, then create the exact Chrome Web Store upload:
+
+```bash
+npm test
+npm run package
+```
+
+The packaging command validates the manifest and required runtime files, then
+creates `dist/markdown-capture-VERSION.zip`. The ZIP has `manifest.json` at its
+root and excludes tests, development documentation, store-listing graphics,
+and package-manager files. Inspect it with `unzip -l` before uploading.
+
+Use [STORE-LISTING.md](STORE-LISTING.md) for the dashboard fields, graphic
+assets, privacy declarations, and manual submission sequence. Each uploaded
+update must have a version greater than the currently uploaded version.
+
 ## Product and permission baseline
 
 Markdown Capture is a local-first, user-invoked exporter. Conversion code and

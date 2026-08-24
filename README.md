@@ -5,9 +5,9 @@ content as clean Markdown. It works with any Markdown editor, requires no
 account, and performs conversion in the browser without sending captured
 content to a hosted service.
 
-Current release: **0.6.1**. Markdown Capture is currently installed as an
-unpacked developer-mode extension; it is not published in the Chrome Web
-Store.
+Current release: **0.7.0**. Markdown Capture can be installed as an unpacked
+developer-mode extension while its initial Chrome Web Store listing is under
+review.
 
 ## Supported captures
 
@@ -99,7 +99,8 @@ npm test
 See [DEVELOPMENT.md](DEVELOPMENT.md) for the Chrome development loop, vendored
 runtime maintenance, permissions, and versioning. See
 [ROADMAP.md](ROADMAP.md) for completed phases and planned source support, and
-[CHANGELOG.md](CHANGELOG.md) for release history.
+[CHANGELOG.md](CHANGELOG.md) for release history. The extension's data handling
+is described in [PRIVACY.md](PRIVACY.md).
 
 ## Limitations
 
