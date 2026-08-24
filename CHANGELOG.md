@@ -2,12 +2,9 @@
 
 ## 0.7.0
 
-- Added extension icons and Chrome Web Store listing assets for the initial
-  public store submission.
-- Added a public privacy policy and explicit Web Store privacy, permission, and
-  testing disclosures.
-- Added a reproducible release command that validates and creates the upload
-  ZIP with only runtime files.
+- Added extension icons and Chrome Web Store listing assets for the initial public store submission.
+- Added a public privacy policy and explicit Web Store privacy, permission, and testing disclosures.
+- Added a reproducible release command that validates and creates the upload ZIP with only runtime files.
 
 ## 0.6.1
 

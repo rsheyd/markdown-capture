@@ -5,9 +5,7 @@ content as clean Markdown. It works with any Markdown editor, requires no
 account, and performs conversion in the browser without sending captured
 content to a hosted service.
 
-Current release: **0.7.0**. Markdown Capture can be installed as an unpacked
-developer-mode extension while its initial Chrome Web Store listing is under
-review.
+Current release: **0.7.0**. [Install Markdown Capture from the Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg).
 
 ## Supported captures
 
@@ -24,7 +22,11 @@ Specialized Reddit and PDF handling takes priority over generic webpage
 capture. PDF and webpage conversion are best effort; see
 [Limitations](#limitations) before relying on layout-sensitive output.
 
-## Install locally in Chrome
+## Install
+
+Install the published extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg), then pin **Markdown Capture** from Chrome's Extensions menu.
+
+### Install locally for development
 
 Clone or download this repository first. No build step is required for normal
 use; the conversion dependencies used by Chrome are already bundled locally.
@@ -99,8 +101,7 @@ npm test
 See [DEVELOPMENT.md](DEVELOPMENT.md) for the Chrome development loop, vendored
 runtime maintenance, permissions, and versioning. See
 [ROADMAP.md](ROADMAP.md) for completed phases and planned source support, and
-[CHANGELOG.md](CHANGELOG.md) for release history. The extension's data handling
-is described in [PRIVACY.md](PRIVACY.md).
+[CHANGELOG.md](CHANGELOG.md) for release history. The extension's data handling is described in [PRIVACY.md](PRIVACY.md).
 
 ## Limitations
 
