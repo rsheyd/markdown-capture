@@ -5,7 +5,7 @@ content as clean Markdown. It works with any Markdown editor, requires no
 account, and performs conversion in the browser without sending captured
 content to a hosted service.
 
-Current release: **0.7.0**. [Install Markdown Capture from the Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg).
+[![Latest release](https://img.shields.io/github/v/release/rsheyd/google-docs-markdown-sync?display_name=tag&sort=semver)](https://github.com/rsheyd/google-docs-markdown-sync/releases/latest) · [Install Markdown Capture from the Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg).
 
 ## Supported captures
 
