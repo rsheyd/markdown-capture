@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head><title>Consultation request</title></head>
+  <body>
+    <form id="responseForm">
+      <h1>Screening questions</h1>
+      <p>Please answer the following questions.</p>
+      <fieldset>
+        <legend>Do you agree to participate?</legend>
+        <label><input type="radio" name="agree" value="yes" checked> Yes</label>
+        <label><input type="radio" name="agree" value="no"> No</label>
+      </fieldset>
+      <label>Experience <textarea>Five years working with runtime platforms.</textarea></label>
+      <label>Region
+        <select>
+          <option>Europe</option>
+          <option selected>North America</option>
+        </select>
+      </label>
+      <label>Available <input type="checkbox" checked></label>
+      <label>Reference <input type="text" value="Case 42"></label>
+      <input type="text" value="visual-secret" style="display: none">
+      <input type="hidden" value="private-token">
+      <label>Password <input type="password" value="secret"></label>
+      <button type="submit">Submit response</button>
+    </form>
+  </body>
+</html>

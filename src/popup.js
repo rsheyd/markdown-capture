@@ -35,9 +35,14 @@ const dependencies = {
     });
     const results = await chrome.scripting.executeScript({
       target: { tabId },
-      func: (url, captureMode) => captureMode === 'full'
-        ? globalThis.MarkdownCaptureWebpage.captureFullPageDocument(document, url)
-        : globalThis.MarkdownCaptureWebpage.captureWebpageDocument(document, url),
+      func: (url, captureMode) => {
+        if (captureMode === 'gmail') {
+          return globalThis.MarkdownCaptureWebpage.captureGmailConversationDocument(document, url);
+        }
+        return captureMode === 'full'
+          ? globalThis.MarkdownCaptureWebpage.captureFullPageDocument(document, url)
+          : globalThis.MarkdownCaptureWebpage.captureWebpageDocument(document, url);
+      },
       args: [sourceUrl, mode]
     });
     const result = results[0]?.result;

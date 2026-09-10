@@ -2097,6 +2097,7 @@ var MarkdownCaptureWebpage = (() => {
   var webpage_exports = {};
   __export(webpage_exports, {
     captureFullPageDocument: () => captureFullPageDocument,
+    captureGmailConversationDocument: () => captureGmailConversationDocument,
     captureWebpageDocument: () => captureWebpageDocument,
     contentToMarkdown: () => contentToMarkdown,
     normalizeContentUrls: () => normalizeContentUrls,
@@ -2933,6 +2934,14 @@ ${value}
         return `~~${content2}~~`;
       }
     });
+    turndown.addRule("formControlState", {
+      filter(node) {
+        return node.nodeName === "SPAN" && node.hasAttribute("data-markdown-capture-control-state");
+      },
+      replacement(_content, node) {
+        return node.getAttribute("data-markdown-capture-control-state");
+      }
+    });
     turndown.remove(["script", "style", "noscript", "template"]);
     return turndown.turndown(container).trim();
   }
@@ -2974,15 +2983,47 @@ ${body}
     return shared / headingWords.size >= 0.8;
   }
   function removeVisuallyHiddenContent(source, clone, document2) {
-    const getComputedStyle = document2.defaultView?.getComputedStyle;
-    if (!getComputedStyle) return;
     const sourceElements = [...source.querySelectorAll("*")];
     const clonedElements = [...clone.querySelectorAll("*")];
+    const clonedBySource = new Map(sourceElements.map((element, index) => [element, clonedElements[index]]));
+    const getComputedStyle = document2.defaultView?.getComputedStyle;
+    if (!getComputedStyle) return clonedBySource;
     sourceElements.forEach((element, index) => {
       const style = getComputedStyle(element);
       if (style.display === "none" || style.visibility === "hidden") {
         clonedElements[index]?.remove();
       }
+    });
+    return clonedBySource;
+  }
+  function replaceControl(control, replacement, root2) {
+    if (!root2.contains(control)) return;
+    if (replacement) control.replaceWith(replacement);
+    else control.remove();
+  }
+  function serializeFormControls(source, clone, clonedBySource) {
+    const sourceControls = [...source.querySelectorAll("input,select,textarea")];
+    sourceControls.forEach((control) => {
+      const clonedControl = clonedBySource.get(control);
+      if (!clonedControl || !clone.contains(clonedControl)) return;
+      const replacement = clone.ownerDocument.createElement(
+        control.nodeName === "TEXTAREA" ? "div" : "span"
+      );
+      if (control.nodeName === "SELECT") {
+        replacement.textContent = [...control.selectedOptions].map((option) => cleanText(option.textContent || option.value)).filter(Boolean).join(", ");
+      } else if (control.nodeName === "TEXTAREA") {
+        replacement.textContent = control.value;
+      } else {
+        const type = cleanText(control.type).toLowerCase();
+        if (type === "checkbox" || type === "radio") {
+          const state = type === "checkbox" ? control.checked ? "[x]" : "[ ]" : control.checked ? "(x)" : "( )";
+          replacement.textContent = state;
+          replacement.setAttribute("data-markdown-capture-control-state", state);
+        } else if (!["button", "file", "hidden", "image", "password", "reset", "submit"].includes(type)) {
+          replacement.textContent = control.value;
+        }
+      }
+      replaceControl(clonedControl, cleanText(replacement.textContent) ? replacement : null, clone);
     });
   }
   function removeAdjacentDuplicateLinks(root2) {
@@ -3002,7 +3043,97 @@ ${body}
       }
     });
   }
+  function isGmailDocument(document2) {
+    try {
+      return new URL(document2.URL).hostname === "mail.google.com";
+    } catch {
+      return false;
+    }
+  }
+  function unwrapElement(element) {
+    element.replaceWith(...element.childNodes);
+  }
+  function cleanGmailMessageBody(body, { removeQuotedHistory = false } = {}) {
+    const removableSelectors = [
+      "script",
+      "style",
+      "noscript",
+      "template",
+      "button",
+      '[role="button"]',
+      '[aria-hidden="true"]',
+      ".gmail_extra"
+    ];
+    if (removeQuotedHistory) removableSelectors.push(".gmail_quote");
+    body.querySelectorAll(removableSelectors.join(",")).forEach((node) => node.remove());
+    body.querySelectorAll("img").forEach((image) => {
+      const source = image.getAttribute("src") || "";
+      const width = Number.parseInt(image.getAttribute("width") || "", 10);
+      const height = Number.parseInt(image.getAttribute("height") || "", 10);
+      if (source.includes("/images/cleardot.gif") || width === 1 || height === 1) image.remove();
+    });
+    body.querySelectorAll("table").forEach((table) => {
+      const presentation = table.getAttribute("role") === "presentation";
+      const hasHeadings = Boolean(table.querySelector("th"));
+      if (presentation || !hasHeadings) {
+        table.querySelectorAll("tr").forEach((row) => {
+          [...row.querySelectorAll(":scope > td")].slice(0, -1).forEach((cell2) => {
+            cell2.append(body.ownerDocument.createTextNode(" "));
+          });
+          const separator = body.ownerDocument.createElement("br");
+          row.append(separator);
+        });
+        [...table.querySelectorAll("tbody,thead,tfoot,tr,td")].reverse().forEach(unwrapElement);
+        unwrapElement(table);
+      }
+    });
+    pruneEmptyContent(body);
+  }
+  function gmailMessageMetadata(message) {
+    const senderNode = message.querySelector(".gD[email], [data-hovercard-id][email]");
+    const senderName = cleanText(senderNode?.getAttribute("name") || senderNode?.textContent);
+    const senderEmail = cleanText(senderNode?.getAttribute("email"));
+    const sender = senderName && senderEmail && senderName !== senderEmail ? `${senderName} <${senderEmail}>` : senderName || senderEmail;
+    const timestampNode = message.querySelector('.g3[title], [data-tooltip*="20"][title]');
+    const timestamp = cleanText(timestampNode?.getAttribute("title") || timestampNode?.textContent);
+    const recipients = cleanText(message.querySelector(".hb")?.textContent);
+    return { recipients, sender, timestamp };
+  }
+  function captureGmailConversationDocument(document2, sourceUrl = document2.URL) {
+    if (!isGmailDocument(document2)) throw new Error("This is not a Gmail conversation.");
+    const messages = [...document2.querySelectorAll(".adn.ads, .adn")].filter((message, index, all) => message.querySelector(".a3s") && !all.some((other) => other !== message && other.contains(message)));
+    if (!messages.length) {
+      throw new Error("Could not find any loaded messages. Open the conversation and expand the messages, then try again.");
+    }
+    const subject = cleanText(
+      document2.querySelector("h2.hP, [data-thread-perm-id] h2")?.textContent,
+      cleanText(document2.title.replace(/\s+-\s+Gmail\s*$/i, ""), "Gmail conversation")
+    );
+    const conversation = document2.createElement("div");
+    messages.forEach((message, index) => {
+      const body = message.querySelector(".a3s").cloneNode(true);
+      cleanGmailMessageBody(body, { removeQuotedHistory: messages.length > 1 });
+      if (!cleanText(body.textContent) && !body.querySelector("img,table,pre")) return;
+      const { recipients, sender, timestamp } = gmailMessageMetadata(message);
+      const heading = [sender || "Unknown sender", timestamp].filter(Boolean).join(" \u2014 ");
+      if (index) conversation.append(document2.createElement("hr"));
+      const headingNode = document2.createElement("h2");
+      headingNode.textContent = heading;
+      conversation.append(headingNode);
+      if (recipients) {
+        const metadata = document2.createElement("p");
+        metadata.textContent = recipients;
+        conversation.append(metadata);
+      }
+      conversation.append(body);
+    });
+    if (!conversation.childNodes.length) {
+      throw new Error("The loaded Gmail messages did not contain readable content.");
+    }
+    return webpageResult(document2, sourceUrl, conversation.innerHTML, subject);
+  }
   function captureWebpageDocument(document2, sourceUrl = document2.URL) {
+    if (isGmailDocument(document2)) return captureGmailConversationDocument(document2, sourceUrl);
     const parsed = new import_readability.Readability(document2.cloneNode(true)).parse();
     if (!parsed?.content) {
       throw new Error("Could not identify the main content on this page.");
@@ -3010,21 +3141,19 @@ ${body}
     return webpageResult(document2, sourceUrl, parsed.content, parsed.title);
   }
   function captureFullPageDocument(document2, sourceUrl = document2.URL) {
+    if (isGmailDocument(document2)) return captureGmailConversationDocument(document2, sourceUrl);
     const source = document2.querySelector("main") || document2.body;
     if (!source) throw new Error("The page did not contain capturable content.");
     const content = source.cloneNode(true);
-    removeVisuallyHiddenContent(source, content, document2);
+    const clonedBySource = removeVisuallyHiddenContent(source, content, document2);
+    serializeFormControls(source, content, clonedBySource);
     content.querySelectorAll([
       "script",
       "style",
       "noscript",
       "template",
       "nav",
-      "form",
       "button",
-      "input",
-      "select",
-      "textarea",
       "dialog",
       "menu",
       '[contenteditable]:not([contenteditable="false"])',

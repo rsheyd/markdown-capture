@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import {
   captureFullPageDocument,
+  captureGmailConversationDocument,
   captureWebpageDocument,
   contentToMarkdown,
   selectionToMarkdown,
@@ -39,7 +40,62 @@ test('captures full multi-region page content with conservative generic cleanup'
   assert.match(result.markdown, /Important compatibility note/);
   assert.equal(result.markdown.match(/New issue/g)?.length, 1);
   assert.equal(result.markdown.match(/Example issue with enough title words/g)?.length, 1);
-  assert.doesNotMatch(result.markdown, /Repository navigation|Submit comment|Draft reply|Draft inline editor|Hidden keyboard instructions/);
+  assert.match(result.markdown, /Draft reply/);
+  assert.doesNotMatch(result.markdown, /Repository navigation|Submit comment|Draft inline editor|Hidden keyboard instructions/);
+});
+
+test('captures every loaded Gmail message without application chrome or duplicated quotes', async () => {
+  const document = await fixture('gmail-conversation.html', 'https://mail.google.com/mail/u/0/#inbox/thread-id');
+  const result = captureGmailConversationDocument(document);
+
+  assert.equal(result.title, 'Re: Account migration');
+  assert.equal(result.filename, 'Re Account migration.md');
+  assert.match(result.markdown, /## Alex Rivera <alex@example\.com> — Sep 9, 2026, 4:15 PM/);
+  assert.match(result.markdown, /to me\n\nCan you confirm the migration window/);
+  assert.match(result.markdown, /## Sam Lee <sam@example\.net> — Sep 10, 2026, 8:03 AM/);
+  assert.match(result.markdown, /The migration window is confirmed/);
+  assert.match(result.markdown, /\*\*Sam Lee\*\* Operations/);
+  assert.match(result.markdown, /\| Phase\s+\| Status\s+\|/);
+  assert.doesNotMatch(result.markdown, /Inbox navigation|Reply|older duplicated message|cleardot/);
+});
+
+test('routes both generic capture actions through Gmail conversation capture', async () => {
+  const document = await fixture('gmail-conversation.html', 'https://mail.google.com/mail/u/0/#inbox/thread-id');
+  assert.match(captureWebpageDocument(document).markdown, /Alex Rivera/);
+  assert.match(captureFullPageDocument(document).markdown, /Sam Lee/);
+});
+
+test('preserves forwarded or quoted content when Gmail exposes one loaded message', () => {
+  const document = new JSDOM(`
+    <title>Forwarded request - Gmail</title>
+    <h2 class="hP">Forwarded request</h2>
+    <section class="adn ads">
+      <span class="gD" name="Alex" email="alex@example.com">Alex</span>
+      <span class="g3" title="Sep 10, 2026, 9:00 AM">9:00 AM</span>
+      <div class="a3s">
+        <p>Please review the message below.</p>
+        <div class="gmail_quote"><p>Forwarded message content that must remain.</p></div>
+      </div>
+    </section>
+  `, { url: 'https://mail.google.com/mail/u/0/#inbox/thread-id' }).window.document;
+
+  const result = captureGmailConversationDocument(document);
+  assert.match(result.markdown, /Please review the message below/);
+  assert.match(result.markdown, /Forwarded message content that must remain/);
+});
+
+test('preserves form content and meaningful control state in full-page capture', async () => {
+  const result = captureFullPageDocument(await fixture('webpage-form.html'));
+
+  assert.match(result.markdown, /Screening questions/);
+  assert.match(result.markdown, /Please answer the following questions/);
+  assert.match(result.markdown, /\(x\) Yes/);
+  assert.match(result.markdown, /\( \) No/);
+  assert.match(result.markdown, /Five years working with runtime platforms/);
+  assert.match(result.markdown, /North America/);
+  assert.match(result.markdown, /Available \[x\]/);
+  assert.match(result.markdown, /Reference Case 42/);
+  assert.doesNotMatch(result.markdown, /visual-secret|private-token|secret|Submit response/);
 });
 
 test('preserves fenced code blocks and inline code from documentation', async () => {

@@ -8,7 +8,7 @@ import {
 } from '../src/adapters.js';
 
 test('registers adapters with the common contract', () => {
-  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'webpage']);
+  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'gmail', 'webpage']);
   for (const adapter of adapters) {
     assert.equal(typeof adapter.detect, 'function');
     assert.equal(typeof adapter.actions, 'function');
@@ -51,6 +51,16 @@ test('uses a generic fallback for HTTP pages and rejects restricted schemes', ()
   ]);
   assert.equal(detectSource({ url: 'chrome://extensions/' }), null);
   assert.equal(getAdapter('unknown'), null);
+});
+
+test('detects Gmail conversations and exposes conversation-specific actions', () => {
+  const source = detectSource({ url: 'https://mail.google.com/mail/u/0/#inbox/thread-id' });
+  assert.equal(source.id, 'gmail');
+  assert.equal(source.label, 'Gmail conversation');
+  assert.deepEqual(source.actions.map(action => action.label), [
+    'Copy Conversation',
+    'Download Conversation'
+  ]);
 });
 
 test('prefers specialized adapters over the generic webpage fallback', () => {
@@ -128,6 +138,22 @@ test('webpage adapter delegates active-tab acquisition', async () => {
       assert.equal(tabId, tab.id);
       assert.equal(sourceUrl, tab.url);
       assert.equal(mode, 'full');
+      return expected;
+    }
+  });
+  assert.equal(result, expected);
+});
+
+test('Gmail adapter delegates conversation acquisition', async () => {
+  const tab = { id: 11, url: 'https://mail.google.com/mail/u/0/#inbox/thread-id', title: 'Thread' };
+  const source = detectSource(tab);
+  const action = getSourceAction(source, 'gmail-copy');
+  const expected = { filename: 'Thread.md', markdown: '# Thread\n', sourceUrl: tab.url, title: 'Thread' };
+  const result = await getAdapter(source.id).capture({ tab, action }, {
+    captureWebpage: async (tabId, sourceUrl, mode) => {
+      assert.equal(tabId, tab.id);
+      assert.equal(sourceUrl, tab.url);
+      assert.equal(mode, 'gmail');
       return expected;
     }
   });

@@ -14,6 +14,7 @@ content to a hosted service.
 | Reddit post | **Copy** or **Download Full Discussion** | Post metadata, body, and returned comment hierarchy |
 | Reddit comment permalink | **Copy** or **Download Comment Thread** | The selected comment and its returned replies |
 | Text-based PDF or Gmail PDF attachment | **Copy PDF as Markdown** | Basic page-by-page text with title and source URL |
+| Gmail conversation | **Copy** or **Download Conversation** | Every loaded message with sender, recipients, timestamp, and cleaned body |
 | Article or documentation page | **Copy Main Content** | Best-effort Readability extraction converted to Markdown |
 | Discussion, listing, or application-style page | **Copy** or **Download Full Page Content** | Rendered content from the page's main region with common controls removed |
 | Selected webpage content | Press `Option+Shift+M` on macOS, `Alt+Shift+M` elsewhere, or choose **Copy Selection as Markdown** from the context menu | The selected structure with absolute links and image URLs |
@@ -60,6 +61,9 @@ extension service worker from `chrome://extensions`.
 - Full-page capture converts the semantic main region (or the document body as
   a fallback) after removing common navigation, forms, controls, dialogs, and
   hidden elements.
+- Gmail conversation capture reads the loaded message containers directly,
+  removes repeated quoted history and presentation-only email markup, and
+  preserves real data tables.
 - Selection capture reuses the webpage converter and makes relative links and
   image sources absolute.
 - The source-aware popup shows only actions that apply to the active tab.
@@ -110,6 +114,8 @@ runtime maintenance, permissions, and versioning. See
 - Full-page capture can preserve repeated cards and discussion comments, but
   site-specific interface text may remain and visual groupings may be flattened.
 - Dynamic content that has not rendered when capture begins is not included.
+- Gmail conversation capture includes loaded messages. Expand any message whose
+  body Gmail has not loaded before capturing the conversation.
 - Complex interactive components, forms, canvas content, and visual layout do
   not have lossless Markdown equivalents.
 - Selection capture is limited to HTTP(S) documents where Chrome permits

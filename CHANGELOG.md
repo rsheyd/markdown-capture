@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1
+
+- Added source-aware Gmail conversation capture that exports every loaded message with sender, recipients, timestamp, and body while omitting Gmail controls and repeated quoted history when the corresponding messages are separately available.
+- Cleaned presentation tables and tracking images from Gmail messages while preserving data tables.
+- Preserved form labels, questions, instructions, and other static content in full-page captures instead of removing entire forms.
+- Represented selected options, text values, and checkbox or radio state as readable Markdown while continuing to exclude buttons, hidden fields, passwords, and file inputs.
+
 ## 0.7.0
 
 - Added extension icons and Chrome Web Store listing assets for the initial public store submission.

@@ -109,7 +109,33 @@ const webpageAdapter = {
   }
 };
 
-export const adapters = [redditAdapter, pdfAdapter, webpageAdapter];
+const gmailAdapter = {
+  id: 'gmail',
+  label: 'Gmail conversation',
+
+  detect(tab) {
+    if (!tab?.url) return null;
+    try {
+      const url = new URL(tab.url);
+      return url.hostname === 'mail.google.com' && !isGmailPdfViewerUrl(tab.url) ? {} : null;
+    } catch {
+      return null;
+    }
+  },
+
+  actions() {
+    return [
+      action('gmail-copy', 'Copy Conversation', 'copy', { mode: 'gmail' }),
+      action('gmail-download', 'Download Conversation', 'download', { mode: 'gmail' })
+    ];
+  },
+
+  capture({ tab, action: selectedAction }, dependencies) {
+    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode);
+  }
+};
+
+export const adapters = [redditAdapter, pdfAdapter, gmailAdapter, webpageAdapter];
 
 export function detectSource(tab) {
   for (const adapter of adapters) {
