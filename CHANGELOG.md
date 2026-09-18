@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2
+
+- Added stable UTC timestamps to Reddit posts and comments, and marked comments that Reddit reports as edited.
+
 ## 0.7.1
 
 - Added source-aware Gmail conversation capture that exports every loaded message with sender, recipients, timestamp, and body while omitting Gmail controls and repeated quoted history when the corresponding messages are separately available.

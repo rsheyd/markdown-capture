@@ -65,6 +65,26 @@ function points(score) {
   return ` · ${score} ${score === 1 ? 'point' : 'points'}`;
 }
 
+function timestamp(createdUtc) {
+  if (typeof createdUtc !== 'number' || !Number.isFinite(createdUtc)) return '';
+
+  const formatted = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).format(new Date(createdUtc * 1000));
+
+  return ` · ${formatted} UTC`;
+}
+
+function edited(value) {
+  return value ? ' · edited' : '';
+}
+
 function canonicalUrl(post) {
   if (post.permalink) {
     return new URL(post.permalink, 'https://www.reddit.com').toString();
@@ -80,7 +100,7 @@ function renderComment(node, depth = 0) {
   const replyMarker = depth ? `${'↳ '.repeat(Math.min(depth, 3))}` : '';
   const body = String(comment.body || (comment.author ? '[removed]' : '[deleted]')).trim();
   const lines = [
-    `${'#'.repeat(headingLevel)} ${replyMarker}${author(comment.author)}${points(comment.score)}`,
+    `${'#'.repeat(headingLevel)} ${replyMarker}${author(comment.author)}${points(comment.score)}${timestamp(comment.created_utc)}${edited(comment.edited)}`,
     '',
     body
   ];
@@ -104,7 +124,7 @@ export function redditJsonToMarkdown(payload) {
   const lines = [
     `# ${inline(post.title, 'Untitled Reddit post')}`,
     '',
-    `**${author(post.author)}** · r/${inline(post.subreddit, 'unknown')}`,
+    `**${author(post.author)}** · r/${inline(post.subreddit, 'unknown')}${timestamp(post.created_utc)}`,
     `[Original Reddit post](${sourceUrl})`
   ];
 

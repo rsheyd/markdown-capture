@@ -19,6 +19,7 @@ const post = {
   title: 'A useful post',
   author: 'poster',
   subreddit: 'test',
+  created_utc: 1773844860,
   permalink: '/r/test/comments/abc123/a_useful_post/',
   selftext: 'Post **body**.'
 };
@@ -70,12 +71,21 @@ test('renders a post and recursive comments while ignoring more objects', () => 
       data: {
         author: 'first',
         score: 42,
+        created_utc: 1773846420,
+        edited: 1773846720,
         body: 'First comment',
         replies: { data: { children: [
           { kind: 'more', data: {} },
           {
             kind: 't1',
-            data: { author: 'reply', score: 1, body: 'Nested reply', replies: '' }
+            data: {
+              author: 'reply',
+              score: 1,
+              created_utc: 1773848460,
+              edited: false,
+              body: 'Nested reply',
+              replies: ''
+            }
           }
         ] } }
       }
@@ -87,9 +97,10 @@ test('renders a post and recursive comments while ignoring more objects', () => 
   assert.equal(result.filename, 'A useful post.md');
   assert.equal(result.sourceUrl, 'https://www.reddit.com/r/test/comments/abc123/a_useful_post/');
   assert.match(result.markdown, /^# A useful post/m);
-  assert.match(result.markdown, /\*\*u\/poster\*\* · r\/test/);
-  assert.match(result.markdown, /### u\/first · 42 points/);
-  assert.match(result.markdown, /#### ↳ u\/reply · 1 point/);
+  assert.match(result.markdown, /\*\*u\/poster\*\* · r\/test · March 18, 2026 at 2:41 PM UTC/);
+  assert.match(result.markdown, /### u\/first · 42 points · March 18, 2026 at 3:07 PM UTC · edited/);
+  assert.match(result.markdown, /#### ↳ u\/reply · 1 point · March 18, 2026 at 3:41 PM UTC/);
+  assert.doesNotMatch(result.markdown, /u\/reply[^\n]+edited/);
   assert.doesNotMatch(result.markdown, /undefined/);
 });
 
