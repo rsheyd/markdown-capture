@@ -1,4 +1,5 @@
 import { extractSelection } from './selection.js';
+import { selectionDebugReport, selectionOutput } from './selection-output.js';
 import { selectionContextMenuTitle } from './shortcuts.js';
 
 async function fetchRedditJson(tabId, jsonUrl) {
@@ -86,11 +87,11 @@ async function writeTextInTab(text, tabId, frameId) {
   if (!results[0]?.result) throw new Error('The text was not copied.');
 }
 
-async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml, selectionText }) {
+async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml, selectionText, contextMenuText = '', debug = false, write = true }) {
   const target = Number.isInteger(frameId)
     ? { tabId, frameIds: [frameId] }
     : { tabId };
-  let markdown = '';
+  let convertedMarkdown = '';
   if (selectionHtml) {
     await chrome.scripting.executeScript({
       target,
@@ -104,21 +105,23 @@ async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml,
       }),
       args: [selectionHtml, sourceUrl]
     });
-    markdown = conversionResults[0]?.result || '';
+    convertedMarkdown = conversionResults[0]?.result || '';
   }
-  const mode = markdown ? 'html' : 'plain-text-fallback';
-  markdown ||= selectionText?.trim();
-  if (!markdown) throw new Error('The selection did not produce Markdown.');
+  const { markdown, mode } = selectionOutput(convertedMarkdown, selectionText, contextMenuText);
   console.info('Selection Markdown capture', {
     frameId,
     htmlLength: selectionHtml?.length || 0,
     mode,
     sourceUrl
   });
-  await writeTextInTab(markdown, tabId, frameId);
+  const output = debug
+    ? selectionDebugReport({ sourceUrl, frameId, selectionHtml, selectionText, contextMenuText, convertedMarkdown, markdown, mode })
+    : markdown;
+  if (write) await writeTextInTab(output, tabId, frameId);
+  return output;
 }
 
-async function copySelectionAsMarkdown(info, tab) {
+async function copySelectionAsMarkdown(info, tab, debug = false) {
   if (!tab?.id) throw new Error('The selected tab is unavailable.');
   const target = Number.isInteger(info.frameId)
     ? { tabId: tab.id, frameIds: [info.frameId] }
@@ -134,11 +137,13 @@ async function copySelectionAsMarkdown(info, tab) {
     frameId: info.frameId,
     sourceUrl: info.frameUrl || tab.url,
     selectionHtml: selection?.html,
-    selectionText: selection?.text || info.selectionText
+    selectionText: selection?.text || '',
+    contextMenuText: info.selectionText || '',
+    debug
   });
 }
 
-async function copyActiveSelectionAsMarkdown() {
+async function copyActiveSelectionAsMarkdown(debug = false, write = true) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) throw new Error('The selected tab is unavailable.');
   const results = await chrome.scripting.executeScript({
@@ -153,7 +158,9 @@ async function copyActiveSelectionAsMarkdown() {
     frameId: selectedFrame.frameId,
     sourceUrl: selectedFrame.result.sourceUrl || tab.url,
     selectionHtml: selectedFrame.result.html,
-    selectionText: selectedFrame.result.text
+    selectionText: selectedFrame.result.text,
+    debug,
+    write
   });
 }
 
@@ -190,6 +197,12 @@ chrome.commands.onCommand.addListener(command => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'copy-selection-debug') {
+    copyActiveSelectionAsMarkdown(true, false)
+      .then(report => sendResponse({ ok: true, report }))
+      .catch(error => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
   if (message?.type !== 'fetch-reddit-json') return false;
 
   fetchRedditJson(message.tabId, message.jsonUrl)

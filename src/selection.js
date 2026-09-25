@@ -1,9 +1,10 @@
 export function extractSelection(rootDocument = document) {
   const selection = rootDocument.getSelection();
-  if (!selection?.rangeCount || selection.isCollapsed) return null;
+  const text = selection?.toString().trim() || '';
+  if ((!selection?.rangeCount || selection.isCollapsed) && !text) return null;
 
   const container = rootDocument.createElement('div');
-  for (let index = 0; index < selection.rangeCount; index += 1) {
+  for (let index = 0; index < (selection?.rangeCount || 0); index += 1) {
     const range = selection.getRangeAt(index);
     if (!range.collapsed) container.append(range.cloneContents());
   }
@@ -16,7 +17,7 @@ export function extractSelection(rootDocument = document) {
   });
   return {
     html: container.innerHTML,
-    text: selection.toString().trim(),
+    text,
     sourceUrl: rootDocument.URL
   };
 }

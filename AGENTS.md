@@ -13,10 +13,7 @@
   or send captured content to a hosted conversion service.
 - Prefer user-invoked `activeTab` access. Add broader permissions only for a
   demonstrated supported workflow and document the reason.
-- Increase the version for user-visible changes and record them under that
-  exact version in `CHANGELOG.md`; do not use an Unreleased section. Minor
-  documentation, planning, template-copy, test-only, and internal-maintenance
-  changes do not require a version bump unless they accompany a release.
+- Keep `manifest.json` at its current version during development. Consolidate user-visible changes under that version in `CHANGELOG.md`, with its heading marked `Unreleased` until the corresponding GitHub release exists. Increase the version only as part of a requested release; date the heading during the release flow. Minor documentation, planning, template-copy, test-only, and internal-maintenance changes do not require a bump.
 - Use the MIT-licensed [Copy as Markdown](https://github.com/yorkxin/copy-as-markdown)
   source as a practical reference when debugging selection capture, context
   menus, frame targeting, or clipboard behavior.
@@ -41,10 +38,12 @@
 - `src/gmail-pdf.js` — Gmail PDF viewer detection and attachment URL resolution.
 - `src/reddit.js` — pure Reddit URL and Markdown conversion logic.
 - `src/selection.js` — immediate, pure selected-DOM extraction before conversion dependencies load.
+- `src/selection-output.js` — pure selection output choice and local diagnostic report formatting.
 - `src/shortcuts.js` — platform-specific shortcut labels for Chrome UI surfaces.
 - `src/webpage.js` — pure Readability and HTML-to-Markdown conversion logic.
 - `icons/` — packaged extension icons in Chrome-required PNG sizes.
 - `scripts/package-extension.js` — validates and creates the Web Store upload ZIP.
+- `scripts/create-github-release.sh` — checks, packages, and publishes a GitHub release with the Web Store ZIP.
 - `store-assets/` — listing-only promotional graphics and their editable sources.
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
 - `vendor/webpage/` — bundled webpage converter, licenses, and update notes.
@@ -55,5 +54,6 @@
 - `test/fixtures/` — generated, redistributable PDF fixture and generator.
 - `test/reddit.test.js` — Reddit unit tests.
 - `test/selection.test.js` — immediate selection extraction and dynamic-page regression tests.
+- `test/selection-output.test.js` — line-preserving fallback and diagnostic report tests.
 - `test/shortcuts.test.js` — platform-specific shortcut-label tests.
 - `test/webpage.test.js` — webpage conversion and browser-bundle fixture tests.

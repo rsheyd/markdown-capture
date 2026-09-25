@@ -34,6 +34,7 @@ Test at least:
   structure, absolute URLs, and brief success badge.
 - An empty or unavailable selection failure, confirming the brief failure badge
   and a useful error in the extension service-worker console.
+- A LinkedIn conversation selection with multiple messages. Confirm that copied Markdown retains paragraph breaks. Then select the conversation again, click the toolbar icon, and confirm **Copy Selection Debug Info** includes the selected HTML, browser text, and final output. Confirm the context-menu copy action is shown directly without a submenu.
 - A public text-based `.pdf` URL, which should show only the PDF copy action.
 - The copied PDF Markdown title, source URL, paragraph text, and page breaks.
 - A scanned or image-only `.pdf`, which should report the OCR limitation.
@@ -64,20 +65,21 @@ tests and generic webpage Chrome smoke checks.
 
 The extension has a single version source: the `version` field in `manifest.json`. The private `package.json` intentionally has no version because this project is not published to npm.
 
-Update `manifest.json`, run the tests, and complete the manual smoke checks above before creating a release.
+Keep `manifest.json` unchanged while developing and consolidate user-visible changes under its `Unreleased` changelog heading. When Roman asks to release, update the version if needed and complete the manual Chrome smoke checks above. The release script dates that heading and publishes the matching GitHub release. If publishing is interrupted after the changelog commit, rerun the script; the dated heading is accepted.
 
 ## Release packaging
 
 The current public release is available from the [Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg). The listing ID is `gabiloifhoihennbcfkafmpgepijdkgg`.
 
-Run the automated tests, then create the exact Chrome Web Store upload:
+After completing the manual Chrome smoke checks, preview the release without changing files or contacting GitHub:
 
 ```bash
-npm test
-npm run package
+scripts/create-github-release.sh --dry-run
 ```
 
-The packaging command validates the manifest and required runtime files, then creates `dist/markdown-capture-VERSION.zip`. The ZIP has `manifest.json` at its root and excludes tests, development documentation, store-listing graphics, and package-manager files. Inspect it with `unzip -l` before uploading.
+Commit all release changes, then run `scripts/create-github-release.sh`. It requires a clean `main` checkout and the expected `origin`, runs `npm test`, packages and verifies the exact Chrome Web Store ZIP, dates and commits the changelog, pushes `main`, and creates or verifies the matching GitHub release with the ZIP attached. A rerun uploads the ZIP if an existing GitHub release lacks it. The script does not submit to the Chrome Web Store.
+
+The ZIP is `dist/markdown-capture-VERSION.zip`. It has `manifest.json` at its root and excludes tests, development documentation, store-listing graphics, and package-manager files. Inspect it with `unzip -l` before uploading.
 
 Use [STORE-LISTING.md](STORE-LISTING.md) for the dashboard fields, graphic assets, privacy declarations, and manual submission sequence. Each uploaded update must have a version greater than the currently uploaded version.
 

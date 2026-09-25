@@ -101,10 +101,29 @@ if (!source) {
     appendAction(action, previousGroup);
     previousGroup = action.group || null;
   }
+  if (source.id === 'webpage' || source.id === 'gmail') {
+    appendAction({ id: 'selection-debug', label: 'Copy Selection Debug Info', group: 'Selection' }, previousGroup);
+  }
 
   actionsContainer.addEventListener('click', async event => {
     const button = event.target.closest('button[data-action-id]');
     if (!button) return;
+
+    if (button.dataset.actionId === 'selection-debug') {
+      setButtonsDisabled(true);
+      showStatus('Reading selection…');
+      try {
+        const response = await chrome.runtime.sendMessage({ type: 'copy-selection-debug' });
+        if (!response?.ok) throw new Error(response?.error || 'Could not copy selection debug info.');
+        await navigator.clipboard.writeText(response.report);
+        showStatus('Debug info copied to clipboard.');
+      } catch (error) {
+        showStatus(error.message, true);
+      } finally {
+        setButtonsDisabled(false);
+      }
+      return;
+    }
 
     const action = source.actions.find(item => item.id === button.dataset.actionId);
     setButtonsDisabled(true);

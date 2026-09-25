@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.3 — Unreleased
+
+- Preserved browser selection line breaks when HTML conversion produces a single line, including on dynamic LinkedIn conversations.
+- Added **Copy Selection Debug Info** to the toolbar popup while keeping **Copy Selection as Markdown** directly in the right-click menu. Its local JSON report includes the source, selected HTML and text, converted Markdown, final output, and capture mode.
+
 ## 0.7.2
 
 - Added stable UTC timestamps to Reddit posts and comments, and marked comments that Reddit reports as edited.

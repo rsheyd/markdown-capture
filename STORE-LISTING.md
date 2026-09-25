@@ -88,7 +88,7 @@ The Gmail PDF path requires the reviewer to use their own Gmail account and a PD
 
 1. Update the version-specific references in this checklist for the release being submitted.
 2. Run the manual Chrome smoke checks in `DEVELOPMENT.md` against that version.
-3. Run `npm test` and `npm run package`.
+3. After committing release changes, run `scripts/create-github-release.sh --dry-run`, then `scripts/create-github-release.sh` to test, package, and create the GitHub release.
 4. Inspect `dist/markdown-capture-VERSION.zip` and upload it to the existing item.
 5. Update the Product details and graphic assets when they have changed.
 6. Reconfirm Privacy practices using the declarations and justifications above.

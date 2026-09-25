@@ -40,12 +40,7 @@ use; the conversion dependencies used by Chrome are already bundled locally.
 6. Open a supported source and click the extension icon.
 7. Choose one of the source-specific download or copy actions.
 
-Download actions show Chrome's Save dialog. Copy actions place Markdown on the
-clipboard. To capture only part of a webpage, select it and press
-`Option+Shift+M` on macOS or `Alt+Shift+M` elsewhere. The context menu's
-**Copy Selection as Markdown** action remains available. A brief badge
-checkmark confirms the copy; an exclamation mark indicates a failure. Chrome
-shortcuts can be changed at `chrome://extensions/shortcuts`.
+Download actions show Chrome's Save dialog. Copy actions place Markdown on the clipboard. To capture only part of a webpage, select it and press `Option+Shift+M` on macOS or `Alt+Shift+M` elsewhere. The context menu's **Copy Selection as Markdown** action remains available. For capture problems, select the content, click the extension icon, choose **Copy Selection Debug Info**, and paste the JSON report into a local file for inspection. It contains the selected content, so review it before sharing. Chrome's native Ctrl+C clipboard formats are not included. A brief badge checkmark confirms the context-menu copy; an exclamation mark indicates a failure. Chrome shortcuts can be changed at `chrome://extensions/shortcuts`.
 
 The popup displays progress and concise errors. For more detail, inspect the
 extension service worker from `chrome://extensions`.
