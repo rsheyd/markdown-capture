@@ -2,6 +2,7 @@
 
 ## 0.7.3 — Unreleased
 
+- Captured selected HTML inside open shadow roots, including LinkedIn conversations whose document selection reports an empty range.
 - Preserved browser selection line breaks when HTML conversion produces a single line, including on dynamic LinkedIn conversations.
 - Added **Copy Selection Debug Info** to the toolbar popup while keeping **Copy Selection as Markdown** directly in the right-click menu. Its local JSON report includes the source, selected HTML and text, converted Markdown, final output, and capture mode.
 

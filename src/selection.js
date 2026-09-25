@@ -4,9 +4,27 @@ export function extractSelection(rootDocument = document) {
   if ((!selection?.rangeCount || selection.isCollapsed) && !text) return null;
 
   const container = rootDocument.createElement('div');
-  for (let index = 0; index < (selection?.rangeCount || 0); index += 1) {
-    const range = selection.getRangeAt(index);
-    if (!range.collapsed) container.append(range.cloneContents());
+  const appendRanges = selected => {
+    for (let index = 0; index < (selected?.rangeCount || 0); index += 1) {
+      const range = selected.getRangeAt(index);
+      if (!range.collapsed) container.append(range.cloneContents());
+    }
+  };
+  appendRanges(selection);
+
+  if (!container.hasChildNodes() && text) {
+    const roots = [rootDocument];
+    for (const root of roots) {
+      for (const element of root.querySelectorAll('*')) {
+        if (element.shadowRoot) roots.push(element.shadowRoot);
+      }
+    }
+    for (const root of roots.slice(1)) {
+      const shadowSelection = root.getSelection?.();
+      if (shadowSelection?.toString().trim() !== text) continue;
+      appendRanges(shadowSelection);
+      if (container.hasChildNodes()) break;
+    }
   }
 
   container.querySelectorAll('a[href]').forEach(link => {

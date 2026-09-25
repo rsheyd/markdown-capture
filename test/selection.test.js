@@ -43,6 +43,35 @@ test('captures the selection metadata needed by keyboard shortcuts', () => {
   });
 });
 
+test('captures a selection inside an open shadow root when the document range is collapsed', () => {
+  const document = new JSDOM('<div id="messages"></div>', {
+    url: 'https://www.linkedin.com/in/example/'
+  }).window.document;
+  const root = document.querySelector('#messages').attachShadow({ mode: 'open' });
+  root.innerHTML = '<p>First <a href="/in/example">message</a></p><p>Second message</p>';
+  const range = document.createRange();
+  range.selectNodeContents(root);
+  const selectedText = range.toString().trim();
+  const collapsedRange = document.createRange();
+  document.getSelection = () => ({
+    toString: () => selectedText,
+    rangeCount: 1,
+    isCollapsed: true,
+    getRangeAt: () => collapsedRange
+  });
+  root.getSelection = () => ({
+    toString: () => selectedText,
+    rangeCount: 1,
+    getRangeAt: () => range
+  });
+
+  assert.deepEqual(extractSelection(document), {
+    html: '<p>First <a href="https://www.linkedin.com/in/example">message</a></p><p>Second message</p>',
+    text: selectedText,
+    sourceUrl: 'https://www.linkedin.com/in/example/'
+  });
+});
+
 test('returns empty HTML when the live selection is unavailable', () => {
   const document = new JSDOM('<p>Nothing selected</p>', {
     url: 'https://example.com/'
