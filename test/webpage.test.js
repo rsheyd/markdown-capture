@@ -126,6 +126,27 @@ test('converts HTML fragments with GFM structures through the shared converter',
   assert.equal(markdown, '~~Old~~ and [new](https://example.com/base/next).');
 });
 
+test('omits action controls across sources while preserving content and recorded reactions', () => {
+  const document = new JSDOM('', { url: 'https://example.com/' }).window.document;
+  const markdown = contentToMarkdown(`
+    <p>A message with ❤️ in its content.</p>
+    <div role="toolbar"><a href="/reply">Reply</a></div>
+    <ul role="menu"><li role="menuitem">🙈</li><li>😂</li></ul>
+    <button>Open Emoji Keyboard</button><span role="button">More options</span>
+    <div role="tooltip">Hover help</div><div hidden>Hidden options</div>
+    <div class="msg-s-event-listitem__actions-container"><span>Other message actions</span></div>
+    <button role="checkbox" aria-checked="true">👍 1</button>
+    <button aria-pressed="true">❤️ 2</button>
+    <p><a href="/details">Message details</a></p>
+  `, { baseUrl: document.URL, document });
+
+  assert.match(markdown, /A message with ❤️ in its content/);
+  assert.match(markdown, /👍 1/);
+  assert.match(markdown, /❤️ 2/);
+  assert.match(markdown, /\[Message details\]\(https:\/\/example.com\/details\)/);
+  assert.doesNotMatch(markdown, /🙈|😂|Reply|Open Emoji Keyboard|More options|Hover help|Hidden options|Other message actions/);
+});
+
 test('creates safe filenames and rejects documents without readable content', () => {
   assert.equal(webpageMarkdownFilename('Guide: One?'), 'Guide One.md');
   const document = new JSDOM('<title>Empty</title>', {

@@ -2,6 +2,7 @@
 
 ## 0.7.3 — Unreleased
 
+- Omitted action menus, toolbars, tooltips, hidden elements, and action buttons from shared HTML conversion, including LinkedIn's hover reaction options, while retaining message content and recorded reaction state.
 - Captured selected HTML inside open shadow roots, including LinkedIn conversations whose document selection reports an empty range.
 - Preserved browser selection line breaks when HTML conversion produces a single line, including on dynamic LinkedIn conversations.
 - Added **Copy Selection Debug Info** to the toolbar popup. Its local JSON report includes the source, selected HTML and text, converted Markdown, final output, and capture mode.

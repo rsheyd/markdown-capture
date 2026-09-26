@@ -2,6 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { selectionDebugReport, selectionOutput } from '../src/selection-output.js';
 
+test('does not restore controls removed from converted content via the text fallback', () => {
+  assert.deepEqual(selectionOutput('Message content', '🙈\n😂\nOpen Emoji Keyboard\nMessage content'), {
+    markdown: 'Message content',
+    mode: 'html'
+  });
+});
+
 test('preserves browser line breaks when HTML conversion collapses a selection', () => {
   assert.deepEqual(selectionOutput('First message Second message', 'First message\n\nSecond message'), {
     markdown: 'First message\n\nSecond message',

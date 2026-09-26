@@ -4,7 +4,8 @@ export function selectionOutput(markdown, selectionText, contextMenuText = '') {
   const chromeText = contextMenuText?.trim() || '';
   const multilineText = [browserText, chromeText].find(text => (text.match(/\n/g) || []).length >= 2);
 
-  if (htmlMarkdown && !htmlMarkdown.includes('\n') && multilineText) {
+  const sameText = multilineText && htmlMarkdown.replace(/\s+/g, ' ') === multilineText.replace(/\s+/g, ' ');
+  if (htmlMarkdown && !htmlMarkdown.includes('\n') && sameText) {
     return { markdown: multilineText, mode: 'line-preserving-text-fallback' };
   }
   if (htmlMarkdown) return { markdown: htmlMarkdown, mode: 'html' };

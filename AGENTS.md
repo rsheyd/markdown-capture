@@ -40,7 +40,7 @@
 - `src/selection.js` — immediate, pure selected-DOM extraction before conversion dependencies load.
 - `src/selection-output.js` — pure selection output choice and local diagnostic report formatting.
 - `src/shortcuts.js` — platform-specific shortcut labels for Chrome UI surfaces.
-- `src/webpage.js` — pure Readability and HTML-to-Markdown conversion logic.
+- `src/webpage.js` — pure Readability, shared action-control cleanup, and HTML-to-Markdown conversion logic.
 - `icons/` — packaged extension icons in Chrome-required PNG sizes.
 - `scripts/package-extension.js` — validates and creates the Web Store upload ZIP.
 - `scripts/create-github-release.sh` — checks, packages, and publishes a GitHub release with the Web Store ZIP.

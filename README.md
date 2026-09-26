@@ -59,8 +59,8 @@ extension service worker from `chrome://extensions`.
 - Gmail conversation capture reads the loaded message containers directly,
   removes repeated quoted history and presentation-only email markup, and
   preserves real data tables.
-- Selection capture reuses the webpage converter and makes relative links and
-  image sources absolute.
+- Selection capture reuses the webpage converter and makes relative links and image sources absolute.
+- Shared HTML conversion omits menus, toolbars, tooltips, hidden elements, and action buttons, including hover reaction options. Message text and recorded reaction state remain content. Plain-text fallback cannot identify controls when HTML is unavailable.
 - The source-aware popup shows only actions that apply to the active tab.
 - Copy and download actions share one export path and produce ordinary Markdown
   without targeting a particular notes application.

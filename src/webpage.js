@@ -38,6 +38,16 @@ export function normalizeContentUrls(root, baseUrl) {
 export function contentToMarkdown(content, { baseUrl, document }) {
   const container = document.createElement('div');
   container.innerHTML = content;
+  // Keep content and recorded state, rather than the controls used to act on it.
+  container.querySelectorAll([
+    '[hidden]', '[aria-hidden="true"]',
+    '[role="menu"]', '[role="menubar"]', '[role="menuitem"]',
+    '[role="menuitemcheckbox"]', '[role="menuitemradio"]',
+    '[role="toolbar"]', '[role="tooltip"]',
+    'button:not([role="checkbox"]):not([role="radio"]):not([aria-pressed="true"])',
+    '[role="button"]:not([aria-pressed="true"])',
+    '.msg-s-event-listitem__actions-container'
+  ].join(',')).forEach(node => node.remove());
   normalizeContentUrls(container, baseUrl);
 
   const turndown = new TurndownService({

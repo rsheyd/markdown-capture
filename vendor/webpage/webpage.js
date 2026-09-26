@@ -2903,6 +2903,20 @@ var MarkdownCaptureWebpage = (() => {
   function contentToMarkdown(content, { baseUrl, document: document2 }) {
     const container = document2.createElement("div");
     container.innerHTML = content;
+    container.querySelectorAll([
+      "[hidden]",
+      '[aria-hidden="true"]',
+      '[role="menu"]',
+      '[role="menubar"]',
+      '[role="menuitem"]',
+      '[role="menuitemcheckbox"]',
+      '[role="menuitemradio"]',
+      '[role="toolbar"]',
+      '[role="tooltip"]',
+      'button:not([role="checkbox"]):not([role="radio"]):not([aria-pressed="true"])',
+      '[role="button"]:not([aria-pressed="true"])',
+      ".msg-s-event-listitem__actions-container"
+    ].join(",")).forEach((node) => node.remove());
     normalizeContentUrls(container, baseUrl);
     const turndown = new TurndownService({
       bulletListMarker: "-",
