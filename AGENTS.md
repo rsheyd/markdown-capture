@@ -48,6 +48,7 @@
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
 - `vendor/webpage/` — bundled webpage converter, licenses, and update notes.
 - `test/pdf.test.js` — PDF detection, conversion, and fixture extraction tests.
+- `test/popup.test.js` — popup selection-action and clipboard test.
 - `test/adapters.test.js` — adapter contract, detection, action, and capture tests.
 - `test/export.test.js` — normalized shared copy/download orchestration tests.
 - `test/gmail-pdf.test.js` — Gmail projector URL detection tests.

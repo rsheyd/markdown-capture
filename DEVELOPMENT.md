@@ -34,7 +34,7 @@ Test at least:
   structure, absolute URLs, and brief success badge.
 - An empty or unavailable selection failure, confirming the brief failure badge
   and a useful error in the extension service-worker console.
-- A LinkedIn conversation selection with multiple messages. Confirm that copied Markdown retains paragraph breaks. Then select the conversation again, click the toolbar icon, and confirm **Copy Selection Debug Info** includes the selected HTML, browser text, and final output. Confirm the context-menu copy action is shown directly without a submenu.
+- A LinkedIn conversation selection with multiple messages. Confirm that copied Markdown retains paragraph breaks. Then select the conversation again, click the toolbar icon, confirm **Copy Selection as Markdown** copies the same text, and confirm **Copy Selection Debug Info** includes the selected HTML, browser text, and final output. Confirm the context-menu copy action is shown directly without a submenu.
 - A public text-based `.pdf` URL, which should show only the PDF copy action.
 - The copied PDF Markdown title, source URL, paragraph text, and page breaks.
 - A scanned or image-only `.pdf`, which should report the OCR limitation.

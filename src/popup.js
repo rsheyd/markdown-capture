@@ -101,22 +101,24 @@ if (!source) {
     appendAction(action, previousGroup);
     previousGroup = action.group || null;
   }
-  if (source.id === 'webpage' || source.id === 'gmail') {
-    appendAction({ id: 'selection-debug', label: 'Copy Selection Debug Info', group: 'Selection' }, previousGroup);
+  if (source.id !== 'pdf') {
+    appendAction({ id: 'selection-copy', label: 'Copy Selection as Markdown', group: 'Selection' }, previousGroup);
+    appendAction({ id: 'selection-debug', label: 'Copy Selection Debug Info', group: 'Selection' }, 'Selection');
   }
 
   actionsContainer.addEventListener('click', async event => {
     const button = event.target.closest('button[data-action-id]');
     if (!button) return;
 
-    if (button.dataset.actionId === 'selection-debug') {
+    if (button.dataset.actionId === 'selection-copy' || button.dataset.actionId === 'selection-debug') {
+      const debug = button.dataset.actionId === 'selection-debug';
       setButtonsDisabled(true);
       showStatus('Reading selection…');
       try {
-        const response = await chrome.runtime.sendMessage({ type: 'copy-selection-debug' });
-        if (!response?.ok) throw new Error(response?.error || 'Could not copy selection debug info.');
-        await navigator.clipboard.writeText(response.report);
-        showStatus('Debug info copied to clipboard.');
+        const response = await chrome.runtime.sendMessage({ type: debug ? 'copy-selection-debug' : 'capture-selection-markdown' });
+        if (!response?.ok) throw new Error(response?.error || 'Could not capture the selection.');
+        await navigator.clipboard.writeText(debug ? response.report : response.markdown);
+        showStatus(debug ? 'Debug info copied to clipboard.' : 'Selection copied to clipboard.');
       } catch (error) {
         showStatus(error.message, true);
       } finally {

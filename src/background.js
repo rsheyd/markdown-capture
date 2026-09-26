@@ -197,9 +197,10 @@ chrome.commands.onCommand.addListener(command => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === 'copy-selection-debug') {
-    copyActiveSelectionAsMarkdown(true, false)
-      .then(report => sendResponse({ ok: true, report }))
+  if (message?.type === 'copy-selection-debug' || message?.type === 'capture-selection-markdown') {
+    const debug = message.type === 'copy-selection-debug';
+    copyActiveSelectionAsMarkdown(debug, false)
+      .then(output => sendResponse(debug ? { ok: true, report: output } : { ok: true, markdown: output }))
       .catch(error => sendResponse({ ok: false, error: error.message }));
     return true;
   }
