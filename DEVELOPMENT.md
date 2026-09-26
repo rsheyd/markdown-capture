@@ -14,6 +14,8 @@ runtime after changing its pinned dependency is a separate maintenance step.
 
 Test at least:
 
+- Non-selection exports with the integrity checkbox off and on: confirm the source URL appears in the metadata comment instead of a separate visible link, verify the UTC timestamp and SHA-256 against the downloaded UTF-8 content, reopen the popup to confirm the preference persists, and confirm selection exports remain unchanged.
+
 - A text post with nested comments.
 - A link post.
 - A post with deleted or removed comments.

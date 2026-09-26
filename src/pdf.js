@@ -123,7 +123,7 @@ export function pdfPagesToMarkdown({ pages, sourceUrl, title }) {
 
   return {
     filename: pdfMarkdownFilename(cleanTitle),
-    markdown: `# ${cleanTitle}\n\n[Source PDF](${sourceUrl})\n\n${body}\n`,
+    markdown: `# ${cleanTitle}\n\n${body}\n`,
     sourceUrl,
     title: cleanTitle
   };

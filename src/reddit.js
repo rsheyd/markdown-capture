@@ -124,8 +124,7 @@ export function redditJsonToMarkdown(payload) {
   const lines = [
     `# ${inline(post.title, 'Untitled Reddit post')}`,
     '',
-    `**${author(post.author)}** · r/${inline(post.subreddit, 'unknown')}${timestamp(post.created_utc)}`,
-    `[Original Reddit post](${sourceUrl})`
+    `**${author(post.author)}** · r/${inline(post.subreddit, 'unknown')}${timestamp(post.created_utc)}`
   ];
 
   const body = String(post.selftext || '').trim();

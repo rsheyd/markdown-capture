@@ -1,10 +1,12 @@
 # Privacy Policy for Markdown Capture
 
-Effective date: August 23, 2026
+Effective date: September 26, 2026
 
 Markdown Capture processes webpage content only when a user explicitly invokes one of its copy or download actions. Depending on the selected action, this may include the active page's URL and rendered content, a selected portion of a page, Reddit post and comment data, or the contents of a PDF—including a PDF attachment opened in Gmail.
 
 All conversion happens locally in the user's browser. Markdown Capture does not transmit captured content, browsing activity, personal communications, authentication information, or generated Markdown to the developer or to any hosted conversion or analytics service. It does not sell user data, use it for advertising, allow humans to read it, or share it with third parties.
+
+The extension stores only the capture-time/hash checkbox preference in browser-local extension storage. Source URLs and optional UTC capture timestamps and content hashes are written into the requested export and processed locally.
 
 The extension does not maintain a developer-operated database or account system and does not retain captured content after the requested copy or download operation. Clipboard contents and downloaded files remain under the user's control and are governed by the browser and operating system.
 

@@ -2975,8 +2975,6 @@ ${value}
       filename: webpageMarkdownFilename(title),
       markdown: `# ${title}
 
-[Source page](${resolvedSourceUrl})
-
 ${body}
 `,
       sourceUrl: resolvedSourceUrl,

@@ -4,6 +4,8 @@ import { runExport } from './export.js';
 const actionsContainer = document.querySelector('#actions');
 const sourceLabel = document.querySelector('#source-label');
 const status = document.querySelector('#status');
+const integrityCheckbox = document.querySelector('#include-integrity');
+const preferenceKey = 'includeExportIntegrity';
 const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 const source = detectSource(tab);
 
@@ -92,6 +94,19 @@ function appendAction(action, previousGroup) {
 if (!source) {
   showStatus('Open an HTTP(S) webpage, Reddit post, or supported PDF.', true);
 } else {
+  document.querySelector('#export-options').hidden = false;
+  try {
+    integrityCheckbox.checked = document.defaultView.localStorage.getItem(preferenceKey) === 'true';
+  } catch {
+    showStatus('Could not load the saved export preference.', true);
+  }
+  integrityCheckbox.addEventListener('change', () => {
+    try {
+      document.defaultView.localStorage.setItem(preferenceKey, String(integrityCheckbox.checked));
+    } catch {
+      showStatus('Could not remember this preference. It applies to this popup only.', true);
+    }
+  });
   sourceLabel.textContent = source.label;
   sourceLabel.hidden = false;
   actionsContainer.hidden = false;
@@ -137,7 +152,7 @@ if (!source) {
     showStatus(progress);
 
     try {
-      const result = await runExport({ source, actionId: action.id, tab }, dependencies);
+      const result = await runExport({ source, actionId: action.id, tab, includeIntegrity: integrityCheckbox.checked }, dependencies);
       showStatus(result.output === 'copy' ? 'Copied to clipboard.' : 'Download ready.');
     } catch (error) {
       showStatus(error.message, true);

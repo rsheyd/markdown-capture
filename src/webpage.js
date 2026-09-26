@@ -102,7 +102,7 @@ function webpageResult(document, sourceUrl, content, parsedTitle) {
 
   return {
     filename: webpageMarkdownFilename(title),
-    markdown: `# ${title}\n\n[Source page](${resolvedSourceUrl})\n\n${body}\n`,
+    markdown: `# ${title}\n\n${body}\n`,
     sourceUrl: resolvedSourceUrl,
     title
   };

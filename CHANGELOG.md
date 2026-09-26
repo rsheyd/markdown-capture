@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Moved the source URL into a metadata comment at the start of every non-selection export, replacing the separate visible source link.
+- Added a remembered, default-off popup option to include the UTC capture time and SHA-256 of the exact UTF-8 content following the metadata block. Selection exports remain unchanged.
+
 ## 0.7.3 — 2026-09-26
 
 - Omitted action menus, toolbars, tooltips, hidden elements, and action buttons from shared HTML conversion, including LinkedIn's hover reaction options, while retaining message content and recorded reaction state.

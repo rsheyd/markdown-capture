@@ -1,4 +1,5 @@
 import { getAdapter, getSourceAction } from './adapters.js';
+import { withExportMetadata } from './metadata.js';
 
 export function assertExportResult(result) {
   for (const key of ['markdown', 'title', 'sourceUrl', 'filename']) {
@@ -7,18 +8,20 @@ export function assertExportResult(result) {
   return result;
 }
 
-export async function runExport({ source, actionId, tab }, dependencies) {
+export async function runExport({ source, actionId, tab, includeIntegrity = false }, dependencies) {
   const adapter = getAdapter(source?.id);
   const action = getSourceAction(source, actionId);
   if (!adapter || !action || action.enabled === false) {
     throw new Error('This export action is not available for the active tab');
   }
 
-  const result = assertExportResult(await adapter.capture({
+  const capturedAt = new Date();
+  const captured = assertExportResult(await adapter.capture({
     tab,
     detection: source.detection,
     action
   }, dependencies));
+  const result = await withExportMetadata(captured, { includeIntegrity, capturedAt });
 
   if (action.output === 'copy') {
     await dependencies.copy(result.markdown);

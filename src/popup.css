@@ -61,3 +61,21 @@ button:disabled, .group-label.disabled {
 #status.error {
   color: #b91c1c;
 }
+
+#export-options {
+  border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  margin-top: 6px;
+  padding: 8px;
+}
+
+#export-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#export-options small {
+  display: block;
+  margin: 4px 0 0 23px;
+  opacity: 0.7;
+}

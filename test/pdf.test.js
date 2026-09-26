@@ -49,7 +49,7 @@ test('prioritizes visual top-to-bottom order over PDF content-stream order', () 
   assert.equal(result, 'Page heading\n\nLeft item Right item\n\nBottom section');
 });
 
-test('wraps extracted pages with title and source metadata', () => {
+test('returns extracted pages and source URL for shared metadata formatting', () => {
   const result = pdfPagesToMarkdown({
     pages: ['First page.', 'Second page.'],
     sourceUrl: 'https://example.com/report.pdf',
@@ -57,7 +57,8 @@ test('wraps extracted pages with title and source metadata', () => {
   });
   assert.match(result.markdown, /^# Annual Report/);
   assert.equal(result.filename, 'Annual Report.md');
-  assert.match(result.markdown, /\[Source PDF\]\(https:\/\/example.com\/report.pdf\)/);
+  assert.equal(result.sourceUrl, 'https://example.com/report.pdf');
+  assert.doesNotMatch(result.markdown, /Source PDF/);
   assert.match(result.markdown, /First page\.\n\n---\n\nSecond page\./);
 });
 

@@ -53,6 +53,25 @@ Download actions show Chrome's Save dialog. Copy actions place Markdown on the c
 The popup displays progress and concise errors. For more detail, inspect the
 extension service worker from `chrome://extensions`.
 
+## Export metadata
+
+Every non-selection copy or download begins with an HTML comment containing the source URL, replacing the visible source link. The URL uses the exporter’s canonical URL when available, or its source page/PDF URL otherwise. Comments are visible in the raw Markdown but hidden in most rendered previews.
+
+Enable **Include capture time and SHA-256** at the bottom of the popup to add the UTC time when capture begins and a SHA-256 hash. The checkbox is off by default and remembered locally across popup openings. It does not apply to selection copies or selection debug reports.
+
+```markdown
+<!-- Markdown Capture metadata
+Source URL: https://example.com/article
+Captured at: 2026-09-26T18:42:07.123Z
+SHA-256: <64-character hexadecimal hash>
+Hash scope: Exact UTF-8 bytes after the closing metadata marker and its two LF characters, including all whitespace and the final newline.
+-->
+
+# Article title
+```
+
+To verify a saved file, find the first `-->` followed by two LF characters and calculate SHA-256 over all remaining bytes, without trimming or changing line endings. The metadata block and its blank separator are excluded. Editing the content invalidates the hash; editing the metadata does not. A clipboard destination may change whitespace or line endings, so use the downloaded file when exact byte preservation matters. The hash checks content integrity against a recorded hash; it does not independently prove the source page, capture date, or completeness of the extraction.
+
 ## How it works
 
 - Reddit capture uses the site's structured `.json` representation and fetches

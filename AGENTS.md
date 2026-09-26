@@ -30,6 +30,7 @@
 - `manifest.json` — extension permissions and service-worker entry point.
 - `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
 - `src/export.js` — shared copy and download orchestration.
+- `src/metadata.js` — non-selection source metadata and optional UTC timestamp/SHA-256 formatting.
 - `src/background.js` — same-origin Reddit acquisition and selection context-menu orchestration.
 - `src/popup.html` — compact export-action menu markup.
 - `src/popup.css` — popup menu styling.
@@ -52,6 +53,7 @@
 - `test/popup.test.js` — popup selection-action and clipboard test.
 - `test/adapters.test.js` — adapter contract, detection, action, and capture tests.
 - `test/export.test.js` — normalized shared copy/download orchestration tests.
+- `test/metadata.test.js` — exact UTF-8 hash verification and metadata formatting tests.
 - `test/gmail-pdf.test.js` — Gmail projector URL detection tests.
 - `test/fixtures/` — generated, redistributable PDF fixture and generator.
 - `test/reddit.test.js` — Reddit unit tests.
