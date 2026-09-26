@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.4 — Unreleased
+## 0.7.4 — 2026-09-26
 
 - Moved the source URL into a metadata comment at the start of every non-selection export, replacing the separate visible source link.
 - Added a remembered, default-off popup option to include the UTC capture time and SHA-256 of the exact UTF-8 content following the metadata block. Selection exports remain unchanged.
