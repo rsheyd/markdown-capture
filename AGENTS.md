@@ -21,6 +21,7 @@
 ## File map
 
 - `README.md` — purpose, installation, usage, and limitations.
+- `COMMUNITY.md` — public feedback invitation post draft and suggested places to share it.
 - `CHANGELOG.md` — user-visible changes organized by extension version.
 - `DEVELOPMENT.md` — local Chrome loop, tests, smoke checks, and versioning.
 - `PRIVACY.md` — public privacy policy for users and the Chrome Web Store.

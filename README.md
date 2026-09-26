@@ -7,6 +7,14 @@ content to a hosted service.
 
 [![Latest release](https://img.shields.io/github/v/release/rsheyd/markdown-capture?display_name=tag&sort=semver)](https://github.com/rsheyd/markdown-capture/releases/latest) · [Install Markdown Capture from the Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg).
 
+## Help improve Markdown Capture
+
+Do you regularly save webpages, discussions, or excerpts as Markdown? Try Markdown Capture during your normal workflow for a week, then share what worked or needed cleanup. A short report is enough: what were you trying to capture, where did you use the Markdown, and what happened?
+
+[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg) · [Share feedback on GitHub](https://github.com/rsheyd/markdown-capture/issues/new)
+
+You can also reply wherever you found the extension. For capture problems, a public example URL and a description of the expected result help; remove private content from any examples or diagnostic reports you share.
+
 ## Supported captures
 
 | Source | Action | Result |
