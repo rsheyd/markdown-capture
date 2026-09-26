@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.3 — Unreleased
+## 0.7.3 — 2026-09-26
 
 - Omitted action menus, toolbars, tooltips, hidden elements, and action buttons from shared HTML conversion, including LinkedIn's hover reaction options, while retaining message content and recorded reaction state.
 - Captured selected HTML inside open shadow roots, including LinkedIn conversations whose document selection reports an empty range.
