@@ -48,7 +48,8 @@
 - `src/webpage.js` — pure Readability, shared action-control cleanup, and HTML-to-Markdown conversion logic.
 - `icons/` — packaged extension icons in Chrome-required PNG sizes.
 - `scripts/package-extension.js` — validates and creates the Web Store upload ZIP.
-- `scripts/create-github-release.sh` — checks, packages, and publishes a GitHub release with the Web Store ZIP.
+- `scripts/create-github-release.sh` — prepares release metadata, checks, packages, and publishes a GitHub release with the Web Store ZIP.
+- `test/release-script.test.js` — isolated release preparation, dry-run, and retry regression tests.
 - `store-assets/` — listing-only promotional graphics and their editable sources.
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
 - `vendor/webpage/` — bundled webpage converter, licenses, and update notes.

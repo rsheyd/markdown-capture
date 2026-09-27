@@ -67,7 +67,7 @@ tests and generic webpage Chrome smoke checks.
 
 The extension has a single version source: the `version` field in `manifest.json`. The private `package.json` intentionally has no version because this project is not published to npm.
 
-Keep `manifest.json` unchanged while developing and consolidate user-visible changes under its `Unreleased` changelog heading. When Roman asks to release, update the version if needed and complete the manual Chrome smoke checks above. The release script dates that heading and publishes the matching GitHub release. If publishing is interrupted after the changelog commit, rerun the script; the dated heading is accepted.
+Keep `manifest.json` unchanged while developing and consolidate user-visible changes under its `Unreleased` changelog heading. When Roman asks to release, complete the manual Chrome smoke checks above. The release script accepts `## Unreleased` and advances the manifest patch version when it matches the previous release heading; an explicitly prepared newer manifest version is retained. It also accepts `## VERSION — Unreleased` for a manually chosen version. The script records the version and date and publishes the matching GitHub release. If publishing is interrupted after the changelog commit, rerun the script; the dated heading is accepted.
 
 ## Release packaging
 
@@ -79,7 +79,7 @@ After completing the manual Chrome smoke checks, preview the release without cha
 scripts/create-github-release.sh --dry-run
 ```
 
-Commit all release changes, then run `scripts/create-github-release.sh`. It requires a clean `main` checkout and the expected `origin`, runs `npm test`, packages and verifies the exact Chrome Web Store ZIP, dates and commits the changelog, pushes `main`, and creates or verifies the matching GitHub release with the ZIP attached. A rerun uploads the ZIP if an existing GitHub release lacks it. The script does not submit to the Chrome Web Store.
+Commit all release changes, then run `scripts/create-github-release.sh`. It requires a clean `main` checkout and the expected `origin`, runs `npm test`, packages and verifies the exact Chrome Web Store ZIP, prepares and commits the manifest version and dated changelog, pushes `main`, and creates or verifies the matching GitHub release with the ZIP attached. A rerun uploads the ZIP if an existing GitHub release lacks it. The script does not submit to the Chrome Web Store.
 
 The ZIP is `dist/markdown-capture-VERSION.zip`. It has `manifest.json` at its root and excludes tests, development documentation, store-listing graphics, and package-manager files. Inspect it with `unzip -l` before uploading.
 

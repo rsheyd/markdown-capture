@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix release preparation from a standalone `Unreleased` heading, advancing the patch version and committing matching manifest and changelog metadata.
+
 - Add webpage **Download with images** ZIP export with local image paths, duplicate reuse, bounded downloads, and original-link fallback for failed images.
 
 ## 0.7.4 — 2026-09-26

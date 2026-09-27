@@ -28,12 +28,24 @@ if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 release_header=$(awk '/^## / { print; exit }' "$changelog_path")
+prepare_version=false
+if [[ $release_header == "## Unreleased" ]]; then
+  previous_version=$(awk '/^## [0-9]+\.[0-9]+\.[0-9]+ — / { print $2; exit }' "$changelog_path")
+  if [[ $previous_version == "$version" ]]; then
+    version=$(node -e 'const parts = process.argv[1].split(".").map(Number); parts[2]++; console.log(parts.join("."));' "$version")
+  elif [[ -n $previous_version ]] && ! node -e 'const a = process.argv[1].split(".").map(Number), b = process.argv[2].split(".").map(Number); const i = a.findIndex((n, i) => n !== b[i]); process.exit(i >= 0 && a[i] > b[i] ? 0 : 1);' "$version" "$previous_version"; then
+    echo "manifest.json version must not be older than the previous changelog version." >&2
+    exit 1
+  fi
+  prepare_version=true
+fi
 header_prefix="## $version — "
-if [[ $release_header != "$header_prefix"* ]]; then
+if ! $prepare_version && [[ $release_header != "$header_prefix"* ]]; then
   echo "The newest CHANGELOG.md heading must begin '$header_prefix'." >&2
   exit 1
 fi
 release_date=${release_header#"$header_prefix"}
+if $prepare_version; then release_date="Unreleased"; fi
 if [[ $release_date != "Unreleased" && ! $release_date =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
   echo "The newest changelog heading must end in 'Unreleased' or YYYY-MM-DD." >&2
   exit 1
@@ -61,11 +73,14 @@ fi
 
 if $dry_run; then
   echo "GitHub release: $tag"
+  if $prepare_version; then
+    echo "Manifest version: $version (would be recorded at release time)"
+  fi
   echo "Chrome Web Store ZIP: $zip_path"
   if [[ $release_date == "Unreleased" ]]; then
     echo "Changelog date: $(date +%F) (would be recorded at release time)"
   fi
-  echo "The script would test, package, commit the dated changelog, push, and create or verify the GitHub release."
+  echo "The script would test, package, commit the release metadata, push, and create or verify the GitHub release."
   echo "Chrome Web Store submission remains manual."
   echo
   sed -e '/./,$!d' "$notes_file"
@@ -89,13 +104,7 @@ if git -C "$repository_root" show-ref --tags --verify --quiet "refs/tags/$tag" &
   exit 1
 fi
 
-(cd "$repository_root" && npm test && npm run package)
-unzip -tq "$zip_path" >/dev/null
-packaged_version=$(unzip -p "$zip_path" manifest.json | node -e "let input = ''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version));")
-if [[ $packaged_version != "$version" ]]; then
-  echo "The packaged manifest version does not match $version." >&2
-  exit 1
-fi
+(cd "$repository_root" && npm test)
 
 gh auth status >/dev/null
 remote_tag=$(git -C "$repository_root" ls-remote origin "refs/tags/$tag" | awk '{ print $1 }')
@@ -108,15 +117,33 @@ fi
 
 if [[ $release_date == "Unreleased" ]]; then
   release_date=$(date +%F)
-  CHANGELOG_PATH="$changelog_path" RELEASE_HEADER="$release_header" RELEASE_DATE="$release_date" node -e '
+  CHANGELOG_PATH="$changelog_path" MANIFEST_PATH="$repository_root/manifest.json" RELEASE_VERSION="$version" RELEASE_HEADER="$release_header" RELEASE_DATE="$release_date" node -e '
     const fs = require("node:fs");
     const path = process.env.CHANGELOG_PATH;
     const before = fs.readFileSync(path, "utf8");
     const header = process.env.RELEASE_HEADER;
-    if (!before.includes(header)) throw new Error("Release heading changed before dating it.");
-    fs.writeFileSync(path, before.replace(header, header.replace("Unreleased", process.env.RELEASE_DATE)));
+    if (!before.split("\n").includes(header)) throw new Error("Release heading changed before dating it.");
+    const manifestPath = process.env.MANIFEST_PATH;
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    if (manifest.version !== process.env.RELEASE_VERSION) {
+      manifest.version = process.env.RELEASE_VERSION;
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+    }
+    const heading = `## ${process.env.RELEASE_VERSION} — ${process.env.RELEASE_DATE}`;
+    fs.writeFileSync(path, before.split("\n").map(line => line === header ? heading : line).join("\n"));
   '
-  git -C "$repository_root" add -- CHANGELOG.md
+fi
+
+(cd "$repository_root" && npm run package)
+unzip -tq "$zip_path" >/dev/null
+packaged_version=$(unzip -p "$zip_path" manifest.json | node -e "let input = ''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input).version));")
+if [[ $packaged_version != "$version" ]]; then
+  echo "The packaged manifest version does not match $version." >&2
+  exit 1
+fi
+
+if [[ -n $(git -C "$repository_root" status --porcelain -- CHANGELOG.md manifest.json) ]]; then
+  git -C "$repository_root" add -- CHANGELOG.md manifest.json
   git -C "$repository_root" commit -m "Release $version"
 fi
 
