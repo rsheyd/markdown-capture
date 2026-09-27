@@ -29,6 +29,9 @@
 - `ROADMAP.md` — phased plan for evolving into a multi-source Markdown exporter.
 - `manifest.json` — extension permissions and service-worker entry point.
 - `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
+- `src/image-capture.js` — bounded active-page image fetching.
+- `src/image-export.js` — pure local image rewriting and ZIP generation.
+- `test/image-export.test.js` — image fallback, ZIP integrity, and rewritten metadata tests.
 - `src/export.js` — shared copy and download orchestration.
 - `src/metadata.js` — non-selection source metadata and optional UTC timestamp/SHA-256 formatting.
 - `src/background.js` — same-origin Reddit acquisition and selection context-menu orchestration.

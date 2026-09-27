@@ -2900,7 +2900,7 @@ var MarkdownCaptureWebpage = (() => {
     });
     return root2;
   }
-  function contentToMarkdown(content, { baseUrl, document: document2 }) {
+  function contentToMarkdown(content, { baseUrl, document: document2, imageAssets }) {
     const container = document2.createElement("div");
     container.innerHTML = content;
     container.querySelectorAll([
@@ -2925,6 +2925,17 @@ var MarkdownCaptureWebpage = (() => {
       headingStyle: "atx"
     });
     turndown.use(gfm);
+    if (imageAssets) turndown.addRule("localImageAsset", {
+      filter: "img",
+      replacement(_content, node) {
+        const url = node.getAttribute("src");
+        if (!url) return "";
+        const reference = `markdown-capture-image-${globalThis.crypto.randomUUID()}`;
+        imageAssets.push({ url, reference });
+        const alt = (node.getAttribute("alt") || "").replace(/[\\[\]]/g, "\\$&").replace(/\s+/g, " ");
+        return `![${alt}](<${reference}>)`;
+      }
+    });
     turndown.addRule("fencedCodeBlockWithLanguage", {
       filter(node) {
         return node.nodeName === "PRE" && node.firstElementChild?.nodeName === "CODE";
@@ -2963,15 +2974,18 @@ ${value}
     const value = document2.querySelector('link[rel~="canonical"]')?.getAttribute("href");
     return absoluteUrl(value, fallbackUrl) || fallbackUrl;
   }
-  function webpageResult(document2, sourceUrl, content, parsedTitle) {
+  function webpageResult(document2, sourceUrl, content, parsedTitle, captureImages = false) {
+    const imageAssets = captureImages ? [] : void 0;
     const title = cleanText(parsedTitle || document2.title, "Untitled webpage");
     const resolvedSourceUrl = canonicalUrl(document2, sourceUrl);
     const body = contentToMarkdown(content, {
       baseUrl: document2.baseURI || sourceUrl,
-      document: document2
+      document: document2,
+      imageAssets
     });
     if (!body) throw new Error("The page did not contain readable content.");
     return {
+      ...imageAssets ? { imageAssets } : {},
       filename: webpageMarkdownFilename(title),
       markdown: `# ${title}
 
@@ -3152,13 +3166,21 @@ ${body}
     }
     return webpageResult(document2, sourceUrl, parsed.content, parsed.title);
   }
-  function captureFullPageDocument(document2, sourceUrl = document2.URL) {
+  function captureFullPageDocument(document2, sourceUrl = document2.URL, captureImages = false) {
     if (isGmailDocument(document2)) return captureGmailConversationDocument(document2, sourceUrl);
     const source = document2.querySelector("main") || document2.body;
     if (!source) throw new Error("The page did not contain capturable content.");
     const content = source.cloneNode(true);
     const clonedBySource = removeVisuallyHiddenContent(source, content, document2);
     serializeFormControls(source, content, clonedBySource);
+    if (captureImages) {
+      for (const [original, cloned] of clonedBySource) {
+        if (original.nodeName === "IMG") {
+          const url = original.currentSrc || original.getAttribute("src") || original.getAttribute("data-src");
+          if (url) cloned.setAttribute("src", url);
+        }
+      }
+    }
     content.querySelectorAll([
       "script",
       "style",
@@ -3183,7 +3205,7 @@ ${body}
     }
     removeAdjacentDuplicateLinks(content);
     pruneEmptyContent(content);
-    return webpageResult(document2, sourceUrl, content.innerHTML, document2.title);
+    return webpageResult(document2, sourceUrl, content.innerHTML, document2.title, captureImages);
   }
   function selectionToMarkdown(document2, sourceUrl = document2.URL) {
     const selection = document2.getSelection();

@@ -263,7 +263,7 @@ and is not a commitment to support every website.
 ## Deferred decisions
 
 - Whether to support OCR locally for scanned PDFs.
-- Whether images should be downloaded and rewritten to local paths.
+- Webpage image downloads now use an optional ZIP action with relative paths; broader source support and cross-origin permission handling remain deferred.
 - Whether customizable frontmatter or templates justify their UI and
   maintenance cost.
 - Whether cross-browser support is worth browser-specific packaging work.

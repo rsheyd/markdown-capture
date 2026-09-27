@@ -1,5 +1,7 @@
 import { detectSource } from './adapters.js';
 import { runExport } from './export.js';
+import { fetchPageImage } from './image-capture.js';
+import { createImageZip } from './image-export.js';
 
 const actionsContainer = document.querySelector('#actions');
 const sourceLabel = document.querySelector('#source-label');
@@ -30,26 +32,46 @@ const dependencies = {
     return capturePdfAsMarkdown(options);
   },
 
-  async captureWebpage(tabId, sourceUrl, mode) {
+  async captureWebpage(tabId, sourceUrl, mode, images = false) {
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ['vendor/webpage/webpage.js']
     });
     const results = await chrome.scripting.executeScript({
       target: { tabId },
-      func: (url, captureMode) => {
+      func: (url, captureMode, captureImages) => {
         if (captureMode === 'gmail') {
           return globalThis.MarkdownCaptureWebpage.captureGmailConversationDocument(document, url);
         }
         return captureMode === 'full'
-          ? globalThis.MarkdownCaptureWebpage.captureFullPageDocument(document, url)
+          ? globalThis.MarkdownCaptureWebpage.captureFullPageDocument(document, url, captureImages)
           : globalThis.MarkdownCaptureWebpage.captureWebpageDocument(document, url);
       },
-      args: [sourceUrl, mode]
+      args: [sourceUrl, mode, images]
     });
     const result = results[0]?.result;
     if (!result) throw new Error('The web page did not return captured content.');
     return result;
+  },
+
+  async fetchImage(tabId, url) {
+    showStatus('Downloading images… Keep this popup open.');
+    const results = await chrome.scripting.executeScript({ target: { tabId }, func: fetchPageImage, args: [url] });
+    const image = results[0]?.result;
+    if (!image || image.error) throw new Error(image?.error || 'Image download failed');
+    return { bytes: Uint8Array.from(atob(image.base64), character => character.charCodeAt(0)), type: image.type };
+  },
+
+  async downloadImages(result) {
+    const url = URL.createObjectURL(createImageZip(result));
+    try {
+      await chrome.downloads.download({ url, filename: result.filename.replace(/\.md$/i, '.zip'), saveAs: true });
+      // Chrome may read the blob after the download API returns.
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (error) {
+      URL.revokeObjectURL(url);
+      throw error;
+    }
   },
 
   copy(markdown) {
@@ -153,7 +175,11 @@ if (!source) {
 
     try {
       const result = await runExport({ source, actionId: action.id, tab, includeIntegrity: integrityCheckbox.checked }, dependencies);
-      showStatus(result.output === 'copy' ? 'Copied to clipboard.' : 'Download ready.');
+      showStatus(result.imageFailures?.length
+        ? `ZIP ready. ${result.imageFailures.length} image(s) could not be saved; original links retained.`
+        : result.assets ? `ZIP ready with ${result.assets.length} image(s).`
+          : result.output === 'copy' ? 'Copied to clipboard.' : 'Download ready.');
+      setButtonsDisabled(false);
     } catch (error) {
       showStatus(error.message, true);
       setButtonsDisabled(false);

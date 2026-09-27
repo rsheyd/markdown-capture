@@ -155,3 +155,9 @@ runtime maintenance, permissions, and versioning. See
 - Media, galleries, flair, awards, and avatars are not specially formatted.
 - Very large threads are limited by the comments included in Reddit's initial
   JSON response.
+
+## Download with images
+
+On ordinary webpages, **Download with images** captures the same content as **Download Full Page Content** and saves a ZIP containing the Markdown file and a sibling `<note-name>-images/` folder. Extract both together into an Obsidian vault or another Markdown folder; successful image downloads use relative Markdown links and work offline. Duplicate image URLs share one local file. Keep the popup open while images download.
+
+This is best-effort: images must already be represented in the captured page content. Cross-origin servers must allow CORS; blocked, unavailable, unsupported, or oversized images retain their original URLs, and the popup reports the number not saved. Limits are 100 unique image URLs, 10 MB per image, 50 MB total saved images, and 15 seconds per fetch. The initial action applies to webpages, not Reddit, Gmail conversations, PDFs, or selection capture. No additional permissions are requested. Optional integrity metadata hashes the final Markdown payload after image paths are rewritten; it does not hash the image files.

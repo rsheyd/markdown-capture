@@ -109,3 +109,9 @@ filename. `src/adapters.js` owns detection, applicable actions, and the common
 capture contract. `src/export.js` owns copy/download dispatch. Chrome-facing
 acquisition is supplied to adapters as an injected dependency so detection and
 conversion remain testable in Node without Chrome APIs.
+
+### Image ZIP smoke check
+
+Reload the unpacked extension, open an HTTP(S) page with a same-origin image, a duplicate, and a broken image, then choose **Download with images**. Keep the popup open. Confirm the saved ZIP contains Markdown plus one copy of each successfully fetched image, local links display offline after extracting both together, and failed images retain their URLs with a visible failure count. Check a cross-origin image without CORS is reported as unavailable. With integrity enabled, independently verify the hash of the rewritten Markdown payload.
+
+Verified in Chrome on 2026-09-27: the unpacked extension reloaded as 0.7.4, the image action saved a valid ZIP, duplicate image references shared one downloaded SVG, and a missing image retained its URL with the popup failure count. Independently checked ZIP CRCs, exact image bytes, and the rewritten Markdown SHA-256; the extracted image rendered from a local file after the source server stopped. Obsidian rendering and live cross-origin image behavior were not checked in this smoke test.

@@ -100,12 +100,13 @@ const webpageAdapter = {
     return [
       action('webpage-copy', 'Copy Main Content', 'copy', { mode: 'main' }),
       action('webpage-full-copy', 'Copy Full Page Content', 'copy', { mode: 'full' }),
-      action('webpage-full-download', 'Download Full Page Content', 'download', { mode: 'full' })
+      action('webpage-full-download', 'Download Full Page Content', 'download', { mode: 'full' }),
+      action('webpage-images-download', 'Download with images', 'download', { mode: 'full', images: true })
     ];
   },
 
   capture({ tab, action: selectedAction }, dependencies) {
-    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode);
+    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode, Boolean(selectedAction.images));
   }
 };
 
@@ -131,7 +132,7 @@ const gmailAdapter = {
   },
 
   capture({ tab, action: selectedAction }, dependencies) {
-    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode);
+    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode, Boolean(selectedAction.images));
   }
 };
 

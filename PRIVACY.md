@@ -15,3 +15,5 @@ For Reddit and Gmail PDF captures, the extension may make a user-invoked, same-o
 Markdown Capture's use of information complies with the Chrome Web Store User Data Policy, including the Limited Use requirements. Access is limited to the extension's single purpose: converting content chosen by the user into ordinary Markdown.
 
 Questions or privacy concerns can be submitted through the project's public [issue tracker](https://github.com/rsheyd/markdown-capture/issues).
+
+The optional webpage **Download with images** action requests images referenced by the captured content from their original servers, using the active page context. Same-origin requests may use the existing site session; cross-origin requests omit credentials and require CORS. Image bytes and the ZIP are assembled locally. No captured content is sent to a conversion service.

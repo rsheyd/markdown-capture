@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add webpage **Download with images** ZIP export with local image paths, duplicate reuse, bounded downloads, and original-link fallback for failed images.
+
 ## 0.7.4 — 2026-09-26
 
 - Moved the source URL into a metadata comment at the start of every non-selection export, replacing the separate visible source link.

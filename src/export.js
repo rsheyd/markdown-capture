@@ -1,5 +1,6 @@
 import { getAdapter, getSourceAction } from './adapters.js';
 import { withExportMetadata } from './metadata.js';
+import { localizeImages } from './image-export.js';
 
 export function assertExportResult(result) {
   for (const key of ['markdown', 'title', 'sourceUrl', 'filename']) {
@@ -21,12 +22,14 @@ export async function runExport({ source, actionId, tab, includeIntegrity = fals
     detection: source.detection,
     action
   }, dependencies));
-  const result = await withExportMetadata(captured, { includeIntegrity, capturedAt });
+  const localized = action.images ? await localizeImages(captured, url => dependencies.fetchImage(tab.id, url)) : captured;
+  const result = await withExportMetadata(localized, { includeIntegrity, capturedAt });
 
   if (action.output === 'copy') {
     await dependencies.copy(result.markdown);
   } else if (action.output === 'download') {
-    await dependencies.download(result);
+    if (action.images) await dependencies.downloadImages(result);
+    else await dependencies.download(result);
   } else {
     throw new Error(`Unsupported export output: ${action.output}`);
   }

@@ -35,7 +35,7 @@ export function normalizeContentUrls(root, baseUrl) {
   return root;
 }
 
-export function contentToMarkdown(content, { baseUrl, document }) {
+export function contentToMarkdown(content, { baseUrl, document, imageAssets }) {
   const container = document.createElement('div');
   container.innerHTML = content;
   // Keep content and recorded state, rather than the controls used to act on it.
@@ -57,6 +57,17 @@ export function contentToMarkdown(content, { baseUrl, document }) {
     headingStyle: 'atx'
   });
   turndown.use(gfm);
+  if (imageAssets) turndown.addRule('localImageAsset', {
+    filter: 'img',
+    replacement(_content, node) {
+      const url = node.getAttribute('src');
+      if (!url) return '';
+      const reference = `markdown-capture-image-${globalThis.crypto.randomUUID()}`;
+      imageAssets.push({ url, reference });
+      const alt = (node.getAttribute('alt') || '').replace(/[\\[\]]/g, '\\$&').replace(/\s+/g, ' ');
+      return `![${alt}](<${reference}>)`;
+    }
+  });
   turndown.addRule('fencedCodeBlockWithLanguage', {
     filter(node) {
       return node.nodeName === 'PRE' && node.firstElementChild?.nodeName === 'CODE';
@@ -91,16 +102,19 @@ function canonicalUrl(document, fallbackUrl) {
   return absoluteUrl(value, fallbackUrl) || fallbackUrl;
 }
 
-function webpageResult(document, sourceUrl, content, parsedTitle) {
+function webpageResult(document, sourceUrl, content, parsedTitle, captureImages = false) {
+  const imageAssets = captureImages ? [] : undefined;
   const title = cleanText(parsedTitle || document.title, 'Untitled webpage');
   const resolvedSourceUrl = canonicalUrl(document, sourceUrl);
   const body = contentToMarkdown(content, {
     baseUrl: document.baseURI || sourceUrl,
-    document
+    document,
+    imageAssets
   });
   if (!body) throw new Error('The page did not contain readable content.');
 
   return {
+    ...(imageAssets ? { imageAssets } : {}),
     filename: webpageMarkdownFilename(title),
     markdown: `# ${title}\n\n${body}\n`,
     sourceUrl: resolvedSourceUrl,
@@ -314,7 +328,7 @@ export function captureWebpageDocument(document, sourceUrl = document.URL) {
   return webpageResult(document, sourceUrl, parsed.content, parsed.title);
 }
 
-export function captureFullPageDocument(document, sourceUrl = document.URL) {
+export function captureFullPageDocument(document, sourceUrl = document.URL, captureImages = false) {
   if (isGmailDocument(document)) return captureGmailConversationDocument(document, sourceUrl);
   const source = document.querySelector('main') || document.body;
   if (!source) throw new Error('The page did not contain capturable content.');
@@ -322,6 +336,14 @@ export function captureFullPageDocument(document, sourceUrl = document.URL) {
   const content = source.cloneNode(true);
   const clonedBySource = removeVisuallyHiddenContent(source, content, document);
   serializeFormControls(source, content, clonedBySource);
+  if (captureImages) {
+    for (const [original, cloned] of clonedBySource) {
+      if (original.nodeName === 'IMG') {
+        const url = original.currentSrc || original.getAttribute('src') || original.getAttribute('data-src');
+        if (url) cloned.setAttribute('src', url);
+      }
+    }
+  }
   content.querySelectorAll([
     'script',
     'style',
@@ -348,7 +370,7 @@ export function captureFullPageDocument(document, sourceUrl = document.URL) {
   removeAdjacentDuplicateLinks(content);
   pruneEmptyContent(content);
 
-  return webpageResult(document, sourceUrl, content.innerHTML, document.title);
+  return webpageResult(document, sourceUrl, content.innerHTML, document.title, captureImages);
 }
 
 export function selectionToMarkdown(document, sourceUrl = document.URL) {

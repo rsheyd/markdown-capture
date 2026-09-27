@@ -47,7 +47,8 @@ test('uses a generic fallback for HTTP pages and rejects restricted schemes', ()
   assert.deepEqual(source.actions.map(action => action.label), [
     'Copy Main Content',
     'Copy Full Page Content',
-    'Download Full Page Content'
+    'Download Full Page Content',
+    'Download with images'
   ]);
   assert.equal(detectSource({ url: 'chrome://extensions/' }), null);
   assert.equal(getAdapter('unknown'), null);
