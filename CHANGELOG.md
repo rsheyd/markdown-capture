@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.5 — 2026-09-27
 
 - Fix release preparation from a standalone `Unreleased` heading, advancing the patch version and committing matching manifest and changelog metadata.
 
