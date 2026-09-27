@@ -1,32 +1,24 @@
 # Project instructions
 
-- Build Markdown Capture as a small, local-first Manifest V3 extension that
-  exports supported sources to ordinary Markdown.
-- Follow the implementation sequence and scope boundaries in `ROADMAP.md`;
-  do not introduce generic webpage extraction before its planned phase.
+- Build Markdown Capture as a small, local-first Manifest V3 extension that exports supported sources to ordinary Markdown.
+- Follow the implementation sequence and scope boundaries in `docs/ROADMAP.md`; do not introduce generic webpage extraction before its planned phase.
 - Preserve the structured Reddit exporter while adding source types.
-- Keep all source conversion logic independent from Chrome APIs and covered by
-  Node tests and fixtures.
-- Keep the popup a compact, source-aware menu of export actions rather than a
-  settings interface.
-- Bundle conversion dependencies locally. Do not load remote executable code
-  or send captured content to a hosted conversion service.
-- Prefer user-invoked `activeTab` access. Add broader permissions only for a
-  demonstrated supported workflow and document the reason.
+- Keep all source conversion logic independent from Chrome APIs and covered by Node tests and fixtures.
+- Keep the popup a compact, source-aware menu of export actions rather than a settings interface.
+- Bundle conversion dependencies locally. Do not load remote executable code or send captured content to a hosted conversion service.
+- Prefer user-invoked `activeTab` access. Add broader permissions only for a demonstrated supported workflow and document the reason.
 - Keep `manifest.json` at its current version during development. Consolidate user-visible changes under that version in `CHANGELOG.md`, with its heading marked `Unreleased` until the corresponding GitHub release exists. Increase the version only as part of a requested release; date the heading during the release flow. Minor documentation, planning, template-copy, test-only, and internal-maintenance changes do not require a bump.
-- Use the MIT-licensed [Copy as Markdown](https://github.com/yorkxin/copy-as-markdown)
-  source as a practical reference when debugging selection capture, context
-  menus, frame targeting, or clipboard behavior.
+- Use the MIT-licensed [Copy as Markdown](https://github.com/yorkxin/copy-as-markdown) source as a practical reference when debugging selection capture, context menus, frame targeting, or clipboard behavior.
 
 ## File map
 
 - `README.md` — purpose, installation, usage, and limitations.
-- `COMMUNITY.md` — public feedback invitation post draft and suggested places to share it.
+- `docs/COMMUNITY.md` — public feedback invitation post draft and suggested places to share it.
 - `CHANGELOG.md` — user-visible changes organized by extension version.
-- `DEVELOPMENT.md` — local Chrome loop, tests, smoke checks, and versioning.
+- `docs/DEVELOPMENT.md` — local Chrome loop, tests, smoke checks, and versioning.
 - `PRIVACY.md` — public privacy policy for users and the Chrome Web Store.
-- `STORE-LISTING.md` — Web Store copy, disclosures, asset map, and submission checklist.
-- `ROADMAP.md` — phased plan for evolving into a multi-source Markdown exporter.
+- `docs/STORE-LISTING.md` — Web Store copy, disclosures, asset map, and submission checklist.
+- `docs/ROADMAP.md` — phased plan for evolving into a multi-source Markdown exporter.
 - `manifest.json` — extension permissions and service-worker entry point.
 - `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
 - `src/image-capture.js` — bounded active-page image fetching.

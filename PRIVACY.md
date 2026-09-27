@@ -1,8 +1,8 @@
 # Privacy Policy for Markdown Capture
 
-Effective date: September 26, 2026
+Effective date: September 27, 2026
 
-Markdown Capture processes webpage content only when a user explicitly invokes one of its copy or download actions. Depending on the selected action, this may include the active page's URL and rendered content, a selected portion of a page, Reddit post and comment data, or the contents of a PDF—including a PDF attachment opened in Gmail.
+Markdown Capture processes webpage content only when a user explicitly invokes one of its copy or download actions. Depending on the selected action, this may include the active page's URL and rendered content, a selected portion of a page, Reddit post and comment data, loaded Gmail messages, images referenced by captured webpage content, or the contents of a PDF—including a PDF attachment opened in Gmail.
 
 All conversion happens locally in the user's browser. Markdown Capture does not transmit captured content, browsing activity, personal communications, authentication information, or generated Markdown to the developer or to any hosted conversion or analytics service. It does not sell user data, use it for advertising, allow humans to read it, or share it with third parties.
 
@@ -12,8 +12,8 @@ The extension does not maintain a developer-operated database or account system 
 
 For Reddit and Gmail PDF captures, the extension may make a user-invoked, same-origin request from the active tab to retrieve the content being exported. Those requests go only to the service already open in the active tab and use the browser's existing session. The extension does not receive or store the session credentials.
 
+The optional webpage **Download with images** action requests images referenced by the captured content from their original servers, using the active page context. Same-origin requests may use the existing site session; cross-origin requests omit credentials and require CORS. Image bytes and the ZIP are assembled locally. No captured content is sent to a conversion service.
+
 Markdown Capture's use of information complies with the Chrome Web Store User Data Policy, including the Limited Use requirements. Access is limited to the extension's single purpose: converting content chosen by the user into ordinary Markdown.
 
 Questions or privacy concerns can be submitted through the project's public [issue tracker](https://github.com/rsheyd/markdown-capture/issues).
-
-The optional webpage **Download with images** action requests images referenced by the captured content from their original servers, using the active page context. Same-origin requests may use the existing site session; cross-origin requests omit credentials and require CORS. Image bytes and the ZIP are assembled locally. No captured content is sent to a conversion service.

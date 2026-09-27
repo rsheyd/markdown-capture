@@ -1,6 +1,8 @@
 # Chrome Web Store listing
 
-This is the canonical copy-and-paste source for the published listing and future updates. Confirm the dashboard's current labels before each update because Google may revise the form.
+Commands and repository file paths below are relative to the repository root.
+
+This is the canonical copy-and-paste source for the published listing and future updates. Confirm the dashboard's current labels before each update because Google may revise the form. Last checked for v0.7.5.
 
 **Published listing:** <https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg>
 
@@ -16,27 +18,13 @@ This is the canonical copy-and-paste source for the published listing and future
 
 **Detailed description:**
 
-Markdown Capture turns content you choose into clean, ordinary Markdown that works with any Markdown editor. It is open source and designed to keep capture simple, transparent, and local.
-
-Use the compact, source-aware menu to copy or download:
-
-- Main content from articles and documentation pages
-- Full rendered content from discussions, listings, and application-style pages
-- A selected part of a webpage—including links, images, lists, tables, and code—from the context menu or with `Option+Shift+M` on macOS and `Alt+Shift+M` on other platforms
-- Structured Reddit posts, discussions, and comment threads
-- Text from supported public PDFs and PDF attachments opened in Gmail
-
-Markdown Capture is local-first. Conversion runs in your browser, with no account, analytics, advertising, or hosted conversion service. It requests temporary access only after you invoke it on the active tab.
-
-Webpage and PDF conversion is best effort. Complex layouts, scanned PDFs, and content that has not rendered are not supported losslessly.
+See published listing: <https://chromewebstore.google.com/detail/markdown-capture/gabiloifhoihennbcfkafmpgepijdkgg>
 
 **Homepage URL:** <https://github.com/rsheyd/markdown-capture>
 
 **Support URL:** <https://github.com/rsheyd/markdown-capture/issues>
 
 **Privacy policy URL:** <https://github.com/rsheyd/markdown-capture/blob/main/PRIVACY.md>
-
-**Mature content:** No
 
 ## Graphic assets
 
@@ -54,7 +42,7 @@ Webpage and PDF conversion is best effort. Complex layouts, scanned PDFs, and co
 
 **Data handled:**
 
-- Website content: Yes. The extension reads the active page, a selection, Reddit content, or a user-opened PDF only after a user invokes an export.
+- Website content: Yes. The extension reads the active page, a selection, Reddit content, a user-opened PDF, or images referenced by captured webpage content only after a user invokes an export.
 - Web history: No. The active tab URL is inspected transiently to select the correct capture method, but browsing history is not collected or retained.
 - Personal communications: Yes. A user may explicitly export a Gmail PDF attachment or webpage content containing communications. Processing is local and the content is not collected by the developer.
 - User activity: No analytics, interaction tracking, or activity collection.
@@ -65,10 +53,10 @@ If the dashboard defines "collected" as data transmitted off-device, select that
 ## Permission justifications
 
 - `activeTab`: Grants temporary access to the page only after the user invokes Markdown Capture, so the extension can identify and convert that content.
-- `scripting`: Injects the locally bundled converter into the active page and captures a user-selected region, rendered page content, or a same-origin source response.
+- `scripting`: Injects the locally bundled converter into the active page and captures a user-selected region, rendered page content, or a source response, including bounded image fetches from the active page context.
 - `clipboardWrite`: Writes Markdown when the user chooses a Copy action.
 - `contextMenus`: Adds the user-invoked Copy Selection as Markdown action.
-- `downloads`: Saves a Markdown file when the user chooses a Download action.
+- `downloads`: Saves a Markdown file or a ZIP containing Markdown and downloaded images when the user chooses a Download action.
 
 **Remote code:** No. All executable code and conversion dependencies are included in the extension package. Network requests only retrieve content the user explicitly chose to export.
 
@@ -79,8 +67,10 @@ No account or test credentials are required for the general workflow.
 1. Open a public article over HTTPS and click Markdown Capture.
 2. Choose Copy Main Content and paste into a text editor.
 3. Select a heading, link, and paragraph on the page; right-click and choose Copy Selection as Markdown; paste the result.
-4. Open a public Reddit post and use Copy Full Discussion.
+4. Open a public Reddit post and use Copy Markdown under All comments.
 5. Open a public URL ending in `.pdf` and use Copy PDF as Markdown.
+6. On an ordinary webpage with images, choose Download with images, keep the popup open, and extract the saved ZIP. Confirm the Markdown and sibling image folder use relative image links; unavailable images retain web URLs with a popup failure count.
+7. Enable Include capture time and SHA-256, repeat an export, and inspect the source URL, UTC timestamp, hash, and stated hash scope in the Markdown metadata block.
 
 The Gmail PDF path requires the reviewer to use their own Gmail account and a PDF attachment; it does not require credentials supplied by the developer.
 

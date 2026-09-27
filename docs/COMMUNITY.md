@@ -1,6 +1,6 @@
 # Markdown Capture community invitation
 
-Draft only; no posts have been published as part of this task. The permanent invitation lives near the top of [README.md](README.md#help-improve-markdown-capture).
+Draft only; no posts have been published as part of this task. The permanent invitation lives near the top of [README.md](../README.md#help-improve-markdown-capture).
 
 ## Public post draft
 
