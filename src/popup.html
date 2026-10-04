@@ -9,11 +9,17 @@
   <body>
     <main>
       <div id="source-label" class="source-label" hidden></div>
-      <section id="actions" hidden></section>
-      <div id="export-options" hidden>
+      <button id="primary-action" hidden></button>
+      <p id="primary-description" hidden></p>
+      <details id="more-options" hidden>
+        <summary>More options</summary>
+        <section id="actions" hidden></section>
+        <div id="export-options" hidden>
         <label><input id="include-integrity" type="checkbox"> Include capture time and SHA-256</label>
-        <small>For exports above, excluding selections.</small>
-      </div>
+        <label><input id="include-debug" type="checkbox"> Include debug info</label>
+        <small>Applies to all actions, including selection copy. Debug info may contain captured content.</small>
+        </div>
+      </details>
       <p id="status" role="status" aria-live="polite"></p>
     </main>
     <script type="module" src="popup.js"></script>

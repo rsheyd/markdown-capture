@@ -10,12 +10,24 @@ The extension should remain smaller and more opinionated than a full web clippin
 
 - Process content locally; do not require an account or hosted conversion API.
 - Keep Copy and Download as the primary actions.
-- Prefer a compact, source-aware popup over a settings-heavy interface.
+- Prefer a compact, source-aware popup over a settings-heavy interface. For webpages, lead with selection copy when text is selected and main-content copy otherwise; put alternate modes and downloads under More options. Offer page-content copy if main extraction fails.
 - Use specialized adapters for structured sources such as Reddit and PDF.
 - Label generic webpage and PDF conversion as best-effort where source layout cannot be represented faithfully in Markdown.
 - Keep source conversion independent from Chrome APIs and cover it with Node tests and fixtures.
 - Defer selection-oriented context-menu capture until after the adapter architecture, then reuse the generic HTML-to-Markdown conversion layer rather than building a separate conversion path.
 - Do not add note storage, synchronization, tagging, or Obsidian-specific vault integration.
+
+## Markdown quality contract
+
+Capture selected content’s meaning and reading order as readable Markdown. Preserve useful structure and omit presentation machinery conservatively. Ordinary copy output must remain practical to read and edit as plain text. Best-effort conversion is not a reason to emit large inline image payloads.
+
+- Default HTML conversion removes explicitly decorative images, redundant status images, and action controls while retaining status words, attachment labels, dates, links, headings, lists, tables, quotes, and code.
+- Preserve-source selection copy uses the same converter with cleanup relaxed for controls and images. Hidden elements remain omitted. It is available only in the popup; the single context-menu action and keyboard shortcut keep default behavior.
+- Both policies retain portable HTTP(S) image references but replace embedded image data and temporary blob URLs with alt text or a short placeholder. Image packaging is a separate explicit ZIP action.
+- Preserve-source means closer to source elements, not lossless visual reproduction. Neither policy uses AI or a hosted service.
+- Add generic rules from demonstrated failures and protect meaning with synthetic regression tests before introducing source-specific adapters.
+
+Acceptance criteria: a confirmation page with a large embedded thumbnail and status icons produces concise Markdown containing its headings, attachment name, status text, dates, and links, with no image payloads. Both policies preserve meaningful images and rich structures where representable; the asset ZIP path still captures embedded images.
 
 ## Intended architecture
 
@@ -178,6 +190,8 @@ Exit criteria:
 
 ### Phase 6 — Add adapters only from demonstrated need
 
+Craigslist post support is now implemented with a dedicated adapter because the generic webpage image action can miss gallery photos or capture only thumbnails. The adapter uses the shared output and ZIP path, with synthetic coverage for gallery order, larger image URLs, and post details. Roman maintains it in this project; live Craigslist image ZIP validation remains pending.
+
 Candidates may include Hacker News, GitHub, or AI conversation pages. Add an adapter only when the generic fallback produces materially poor output and the source is used often enough to justify ongoing maintenance.
 
 Each new adapter must include fixtures, pure conversion tests, documented limitations, and a maintenance owner. This phase is intentionally open-ended and is not a commitment to support every website.
@@ -185,7 +199,7 @@ Each new adapter must include fixtures, pure conversion tests, documented limita
 ## Deferred decisions
 
 - Whether to support OCR locally for scanned PDFs.
-- Webpage image downloads now use an optional ZIP action with relative paths; broader source support and cross-origin permission handling remain deferred.
+- Webpage image downloads use an optional ZIP action with relative paths; other source support and cross-origin permission handling remain deferred.
 - Whether customizable frontmatter or templates justify their UI and maintenance cost.
 - Whether cross-browser support is worth browser-specific packaging work.
 

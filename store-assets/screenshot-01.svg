@@ -11,14 +11,24 @@
   <text x="126" y="482" font-family="Georgia,serif" font-size="25" font-weight="700" fill="#233746">Keep the structure</text>
   <rect x="126" y="510" width="580" height="12" rx="6" fill="#dce5eb"/><rect x="126" y="538" width="510" height="12" rx="6" fill="#dce5eb"/>
   <rect x="126" y="588" width="340" height="70" rx="8" fill="#f2f5f7"/><text x="148" y="630" font-family="Courier, monospace" font-size="17" fill="#36536b">## Links, lists, tables, code</text>
-  <rect x="830" y="230" width="370" height="300" rx="14" fill="#fff" stroke="#cbd7e0" stroke-width="2"/>
-  <text x="862" y="278" font-family="Arial, sans-serif" font-size="20" font-weight="650" fill="#172b3a">Webpage</text>
-  <text x="862" y="326" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#6b7280">MAIN CONTENT</text>
-  <rect x="850" y="342" width="330" height="50" rx="7" fill="#e9f5f2"/>
-  <text x="870" y="374" font-family="Arial, sans-serif" font-size="18" fill="#17324d">Copy Main Content</text>
-  <text x="862" y="430" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#6b7280">FULL PAGE</text>
-  <text x="870" y="472" font-family="Arial, sans-serif" font-size="18" fill="#17324d">Download Full Page Content</text>
-  <text x="830" y="590" font-family="Arial, sans-serif" font-size="22" font-weight="650" fill="#17324d">Works with articles, selections,</text>
-  <text x="830" y="625" font-family="Arial, sans-serif" font-size="22" font-weight="650" fill="#17324d">Reddit discussions, and PDFs.</text>
-  <text x="830" y="677" font-family="Arial, sans-serif" font-size="17" fill="#5a7186">Content stays in your browser.</text>
+  <rect x="830" y="185" width="370" height="510" rx="12" fill="#141414" stroke="#39424e" stroke-width="2"/>
+  <text x="850" y="220" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#f7f7f7">Webpage (best effort)</text>
+  <rect x="846" y="236" width="338" height="46" rx="7" fill="#18202e"/>
+  <text x="859" y="266" font-family="Arial, sans-serif" font-size="20" font-weight="600" fill="#aecbfa">Copy main content</text>
+  <text x="850" y="305" font-family="Arial, sans-serif" font-size="16" fill="#b8bec8">Copies the article or central text</text>
+  <text x="850" y="327" font-family="Arial, sans-serif" font-size="16" fill="#b8bec8">as Markdown.</text>
+  <line x1="846" y1="348" x2="1184" y2="348" stroke="#454545" stroke-width="1"/>
+  <text x="850" y="377" font-family="Arial, sans-serif" font-size="16" fill="#f7f7f7">More options</text>
+  <path d="M1164 369l5 5 5-5" fill="none" stroke="#f7f7f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="850" y="412" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#b8bec8">COPY</text>
+  <text x="850" y="442" font-family="Arial, sans-serif" font-size="16" fill="#f7f7f7">Copy page content</text>
+  <text x="850" y="479" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#b8bec8">DOWNLOAD</text>
+  <text x="850" y="509" font-family="Arial, sans-serif" font-size="16" fill="#f7f7f7">Download page content</text>
+  <text x="850" y="543" font-family="Arial, sans-serif" font-size="16" fill="#f7f7f7">Download with images</text>
+  <line x1="846" y1="561" x2="1184" y2="561" stroke="#454545" stroke-width="1"/>
+  <rect x="850" y="578" width="18" height="18" rx="3" fill="#222" stroke="#9da3aa" stroke-width="2"/>
+  <text x="879" y="593" font-family="Arial, sans-serif" font-size="14" fill="#f7f7f7">Include capture time and SHA-256</text>
+  <text x="879" y="618" font-family="Arial, sans-serif" font-size="13" fill="#b8bec8">For exports above, excluding</text>
+  <text x="879" y="636" font-family="Arial, sans-serif" font-size="13" fill="#b8bec8">selections.</text>
+  <text x="830" y="746" font-family="Arial, sans-serif" font-size="20" font-weight="650" fill="#17324d">Articles, selections, Reddit, and PDFs.</text>
 </svg>

@@ -6,7 +6,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { webcrypto, createHash } from 'node:crypto';
-import { captureFullPageDocument } from '../src/webpage.js';
+import { captureFullPageDocument, captureGmailConversationDocument } from '../src/webpage.js';
 import { localizeImages, createImageZip, imageLimits } from '../src/image-export.js';
 import { detectSource } from '../src/adapters.js';
 import { runExport } from '../src/export.js';
@@ -66,4 +66,44 @@ test('image download hashes the rewritten Markdown and routes only to ZIP output
   const body = result.markdown.slice(result.markdown.indexOf('-->\n\n') + 5);
   assert.equal(result.markdown.match(/SHA-256: ([a-f0-9]{64})/)[1], createHash('sha256').update(body).digest('hex'));
   assert.match(downloaded.markdown, /image-1.png/);
+});
+
+test('debug-enabled image ZIP records detected URLs and fetch failures inside hashed Markdown', async () => {
+  const tab = { id: 1, url: 'https://example.com/page' };
+  const result = await runExport({ tab, source: detectSource(tab), actionId: 'webpage-images-download', includeIntegrity: true, includeDebug: true }, {
+    captureWebpage: async () => capture(),
+    fetchImage: async (_tabId, url) => {
+      if (url.endsWith('missing.png')) throw new Error('Failed to fetch');
+      return { bytes: new Uint8Array([1]), type: 'image/png' };
+    },
+    downloadImages: async () => {}
+  });
+  const body = result.markdown.slice(result.markdown.indexOf('-->\n\n') + 5);
+  assert.equal(result.markdown.match(/SHA-256: ([a-f0-9]{64})/)[1], createHash('sha256').update(body).digest('hex'));
+  const report = JSON.parse(body.match(/<!-- Markdown Capture debug\n([\s\S]*?)\n-->/)[1]);
+  assert.equal(report.detectedImageUrls.length, 3);
+  assert.equal(report.savedImagePaths.length, 1);
+  assert.match(report.imageFailures[0].reason, /Failed to fetch/);
+  assert.equal(report.imageFailures[0].url, 'https://example.com/missing.png');
+});
+
+test('Gmail image action writes an attached photo into the shared ZIP result', async () => {
+  const tab = { id: 4, url: 'https://mail.google.com/mail/u/0/#inbox/thread-id' };
+  const document = new JSDOM('<title>Photos - Gmail</title><h2 class="hP">Photos</h2><section class="adn ads"><span class="gD" email="alex@example.com">Alex</span><div class="a3s">Attached is the photo.</div><div><a href="https://mail.google.com/mail/u/0/?view=att&attid=0.1" title="photo.jpg">Download</a></div></section>', { url: tab.url }).window.document;
+  let downloaded;
+  const result = await runExport({ tab, source: detectSource(tab), actionId: 'gmail-images-download' }, {
+    captureWebpage: async (_tabId, _url, mode, images) => {
+      assert.deepEqual([mode, images], ['gmail', true]);
+      return captureGmailConversationDocument(document, tab.url, images);
+    },
+    fetchImage: async (_tabId, url) => {
+      assert.match(url, /view=att/);
+      return { bytes: new Uint8Array([1, 2, 3]), type: 'image/jpeg' };
+    },
+    downloadImages: async value => { downloaded = value; }
+  });
+  assert.equal(result.assets.length, 1);
+  assert.equal(downloaded.assets[0].path, 'Photos-images/image-1.jpg');
+  assert.match(result.markdown, /Photos-images\/image-1\.jpg/);
+  assert.equal(result.imageFailures.length, 0);
 });

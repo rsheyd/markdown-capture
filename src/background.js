@@ -1,6 +1,8 @@
 import { extractSelection } from './selection.js';
 import { selectionDebugReport, selectionOutput } from './selection-output.js';
 import { selectionContextMenuTitle } from './shortcuts.js';
+import { appendDebugInfo } from './debug.js';
+import { withExportMetadata } from './metadata.js';
 
 async function fetchRedditJson(tabId, jsonUrl) {
   const injectionResults = await chrome.scripting.executeScript({
@@ -50,12 +52,13 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 async function showSelectionBadge(success) {
+  const action = chrome.action;
   await Promise.all([
-    chrome.action.setBadgeBackgroundColor({ color: success ? '#15803d' : '#b91c1c' }),
-    chrome.action.setBadgeText({ text: success ? '✓' : '!' })
+    action.setBadgeBackgroundColor({ color: success ? '#15803d' : '#b91c1c' }),
+    action.setBadgeText({ text: success ? '✓' : '!' })
   ]);
   setTimeout(() => {
-    chrome.action.setBadgeText({ text: '' })
+    action.setBadgeText({ text: '' })
       .catch(error => console.error('Could not clear selection badge', error));
   }, 2500);
 }
@@ -87,7 +90,7 @@ async function writeTextInTab(text, tabId, frameId) {
   if (!results[0]?.result) throw new Error('The text was not copied.');
 }
 
-async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml, selectionText, contextMenuText = '', debug = false, write = true }) {
+async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml, selectionText, contextMenuText = '', write = true, preserveSource = false, options }) {
   const target = Number.isInteger(frameId)
     ? { tabId, frameIds: [frameId] }
     : { tabId };
@@ -99,11 +102,12 @@ async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml,
     });
     const conversionResults = await chrome.scripting.executeScript({
       target,
-      func: (html, url) => globalThis.MarkdownCaptureWebpage.contentToMarkdown(html, {
+      func: (html, url, preserve) => globalThis.MarkdownCaptureWebpage.contentToMarkdown(html, {
         baseUrl: document.baseURI || url,
+        preserveSource: preserve,
         document
       }),
-      args: [selectionHtml, sourceUrl]
+      args: [selectionHtml, sourceUrl, preserveSource]
     });
     convertedMarkdown = conversionResults[0]?.result || '';
   }
@@ -114,14 +118,20 @@ async function copyCapturedSelection({ tabId, frameId, sourceUrl, selectionHtml,
     mode,
     sourceUrl
   });
-  const output = debug
-    ? selectionDebugReport({ sourceUrl, frameId, selectionHtml, selectionText, contextMenuText, convertedMarkdown, markdown, mode })
+  const preferences = options || await chrome.storage?.local?.get(['includeExportIntegrity', 'includeDebugInfo']) || {};
+  const includeIntegrity = preferences.includeExportIntegrity === true;
+  const includeDebug = preferences.includeDebugInfo === true;
+  const annotated = includeDebug
+    ? appendDebugInfo(markdown, JSON.parse(selectionDebugReport({ sourceUrl, frameId, selectionHtml, selectionText, contextMenuText, convertedMarkdown, markdown, mode })))
     : markdown;
+  const output = includeIntegrity
+    ? (await withExportMetadata({ markdown: annotated, sourceUrl }, { includeIntegrity: true })).markdown
+    : annotated;
   if (write) await writeTextInTab(output, tabId, frameId);
   return output;
 }
 
-async function copySelectionAsMarkdown(info, tab, debug = false) {
+async function copySelectionAsMarkdown(info, tab) {
   if (!tab?.id) throw new Error('The selected tab is unavailable.');
   const target = Number.isInteger(info.frameId)
     ? { tabId: tab.id, frameIds: [info.frameId] }
@@ -138,12 +148,11 @@ async function copySelectionAsMarkdown(info, tab, debug = false) {
     sourceUrl: info.frameUrl || tab.url,
     selectionHtml: selection?.html,
     selectionText: selection?.text || '',
-    contextMenuText: info.selectionText || '',
-    debug
+    contextMenuText: info.selectionText || ''
   });
 }
 
-async function copyActiveSelectionAsMarkdown(debug = false, write = true) {
+async function copyActiveSelectionAsMarkdown(write = true, preserveSource = false, options) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.id) throw new Error('The selected tab is unavailable.');
   const results = await chrome.scripting.executeScript({
@@ -159,8 +168,9 @@ async function copyActiveSelectionAsMarkdown(debug = false, write = true) {
     sourceUrl: selectedFrame.result.sourceUrl || tab.url,
     selectionHtml: selectedFrame.result.html,
     selectionText: selectedFrame.result.text,
-    debug,
-    write
+    write,
+    preserveSource,
+    options
   });
 }
 
@@ -197,10 +207,12 @@ chrome.commands.onCommand.addListener(command => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === 'copy-selection-debug' || message?.type === 'capture-selection-markdown') {
-    const debug = message.type === 'copy-selection-debug';
-    copyActiveSelectionAsMarkdown(debug, false)
-      .then(output => sendResponse(debug ? { ok: true, report: output } : { ok: true, markdown: output }))
+  if (message?.type === 'capture-selection-markdown') {
+    copyActiveSelectionAsMarkdown(false, message.preserveSource === true, {
+      includeExportIntegrity: message.includeIntegrity === true,
+      includeDebugInfo: message.includeDebug === true
+    })
+      .then(output => sendResponse({ ok: true, markdown: output }))
       .catch(error => sendResponse({ ok: false, error: error.message }));
     return true;
   }

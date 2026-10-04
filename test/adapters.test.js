@@ -8,7 +8,7 @@ import {
 } from '../src/adapters.js';
 
 test('registers adapters with the common contract', () => {
-  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'gmail', 'webpage']);
+  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'gmail', 'craigslist', 'webpage']);
   for (const adapter of adapters) {
     assert.equal(typeof adapter.detect, 'function');
     assert.equal(typeof adapter.actions, 'function');
@@ -45,9 +45,9 @@ test('uses a generic fallback for HTTP pages and rejects restricted schemes', ()
   assert.equal(source.id, 'webpage');
   assert.equal(source.label, 'Webpage (best effort)');
   assert.deepEqual(source.actions.map(action => action.label), [
-    'Copy Main Content',
-    'Copy Full Page Content',
-    'Download Full Page Content',
+    'Copy main content',
+    'Copy page content',
+    'Download page content',
     'Download with images'
   ]);
   assert.equal(detectSource({ url: 'chrome://extensions/' }), null);
@@ -60,8 +60,10 @@ test('detects Gmail conversations and exposes conversation-specific actions', ()
   assert.equal(source.label, 'Gmail conversation');
   assert.deepEqual(source.actions.map(action => action.label), [
     'Copy Conversation',
-    'Download Conversation'
+    'Download Conversation',
+    'Download with images'
   ]);
+  assert.equal(getSourceAction(source, 'gmail-images-download').images, true);
 });
 
 test('prefers specialized adapters over the generic webpage fallback', () => {
@@ -69,6 +71,25 @@ test('prefers specialized adapters over the generic webpage fallback', () => {
     url: 'https://www.reddit.com/r/test/comments/abc123/a_post/'
   }).id, 'reddit');
   assert.equal(detectSource({ url: 'https://example.com/report.pdf' }).id, 'pdf');
+  assert.equal(detectSource({ url: 'https://providence.craigslist.org/rvs/d/bristol-scamp-trailer/1234567890.html' }).id, 'craigslist');
+  assert.equal(detectSource({ url: 'https://www.craigslist.org/view/d/bristol-2014-scamp-13-with-bathroom/nBYjPFY3H9nyYoEUw9Wbq4' }).id, 'craigslist');
+  assert.equal(detectSource({ url: 'https://providence.craigslist.org/search/rvs' }).id, 'webpage');
+  assert.equal(detectSource({ url: 'https://www.craigslist.org/view/d/bristol-listing/' }).id, 'webpage');
+  assert.equal(detectSource({ url: 'https://fake-craigslist.org/rvs/d/test/1234567890.html' }).id, 'webpage');
+});
+
+test('Craigslist image action uses dedicated capture and the shared ZIP path', async () => {
+  const tab = { id: 12, url: 'https://providence.craigslist.org/rvs/d/bristol-scamp-trailer/1234567890.html' };
+  const source = detectSource(tab);
+  const action = getSourceAction(source, 'craigslist-images-download');
+  assert.equal(action.images, true);
+  const result = await getAdapter(source.id).capture({ tab, action }, {
+    captureWebpage: async (tabId, sourceUrl, mode, images) => {
+      assert.deepEqual([tabId, sourceUrl, mode, images], [tab.id, tab.url, 'craigslist', true]);
+      return { title: 'Scamp', filename: 'Scamp.md', sourceUrl, markdown: '# Scamp', imageAssets: [] };
+    }
+  });
+  assert.equal(result.title, 'Scamp');
 });
 
 test('Reddit adapter captures a normalized result through injected acquisition', async () => {

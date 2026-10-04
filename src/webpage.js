@@ -35,12 +35,12 @@ export function normalizeContentUrls(root, baseUrl) {
   return root;
 }
 
-export function contentToMarkdown(content, { baseUrl, document, imageAssets }) {
+export function contentToMarkdown(content, { baseUrl, document, imageAssets, preserveSource = false }) {
   const container = document.createElement('div');
   container.innerHTML = content;
   // Keep content and recorded state, rather than the controls used to act on it.
-  container.querySelectorAll([
-    '[hidden]', '[aria-hidden="true"]',
+  container.querySelectorAll('[hidden], [aria-hidden="true"]').forEach(node => node.remove());
+  if (!preserveSource) container.querySelectorAll([
     '[role="menu"]', '[role="menubar"]', '[role="menuitem"]',
     '[role="menuitemcheckbox"]', '[role="menuitemradio"]',
     '[role="toolbar"]', '[role="tooltip"]',
@@ -49,6 +49,21 @@ export function contentToMarkdown(content, { baseUrl, document, imageAssets }) {
     '.msg-s-event-listitem__actions-container'
   ].join(',')).forEach(node => node.remove());
   normalizeContentUrls(container, baseUrl);
+  // Ordinary Markdown references portable images; binary assets belong in ZIP exports.
+  const portableImage = image => /^https?:/i.test(image.getAttribute('src') || '');
+  container.querySelectorAll('img').forEach(image => {
+    const alt = (image.getAttribute('alt') || '').trim();
+    const nearbyText = Array.from(image.parentElement.childNodes, node => node.textContent).join(' ').trim().toLowerCase();
+    const statusLabel = alt.replace(/ status$/i, '').toLowerCase();
+    const decorative = image.getAttribute('role') === 'presentation' || image.getAttribute('role') === 'none' || image.getAttribute('alt') === '';
+    const redundantStatus = / status$/i.test(alt) && nearbyText.split(/\s+/).includes(statusLabel);
+    if (!preserveSource && (decorative || redundantStatus)) {
+      image.remove();
+    } else if (!imageAssets && !portableImage(image)) {
+      image.replaceWith(document.createTextNode(` ${alt || '[Image]'} `));
+    }
+  });
+
 
   const turndown = new TurndownService({
     bulletListMarker: '-',
@@ -278,7 +293,32 @@ function gmailMessageMetadata(message) {
   return { recipients, sender, timestamp };
 }
 
-export function captureGmailConversationDocument(document, sourceUrl = document.URL) {
+const gmailImageExtensions = /\.(?:jpe?g|png|gif|webp|avif|bmp|heic|heif)\b/i;
+
+function gmailImageAttachments(message, document) {
+  const attachments = [];
+  const seen = new Set();
+  for (const link of message.querySelectorAll('a[href*="view=att"]')) {
+    let url;
+    try { url = new URL(link.getAttribute('href'), document.baseURI); } catch { continue; }
+    if (url.protocol !== 'https:' || url.hostname !== 'mail.google.com' || url.searchParams.get('view') !== 'att' || seen.has(url.href)) continue;
+    const siblingLabels = [...(link.parentElement?.children || [])].filter(node => node !== link).map(node => node.textContent);
+    const labels = [link.getAttribute('download'), url.searchParams.get('filename'), url.searchParams.get('name'), link.getAttribute('aria-label'), link.getAttribute('title'), link.textContent, ...siblingLabels];
+    let label = labels.map(value => cleanText(value)).find(value => gmailImageExtensions.test(value));
+    if (!label) {
+      const parentLabel = cleanText(link.parentElement?.textContent);
+      if ((parentLabel.match(/\.[a-z0-9]{2,6}\b/gi) || []).length === 1 && gmailImageExtensions.test(parentLabel)) label = parentLabel;
+    }
+    if (!label) continue;
+    const filename = label.replace(/^(?:download|preview)(?:\s+attachment)?\s+/i, '')
+      .match(/([^/\\<>:"|?*]+\.(?:jpe?g|png|gif|webp|avif|bmp|heic|heif))\b/i)?.[1]?.trim() || 'Image attachment';
+    attachments.push({ url: url.href, filename });
+    seen.add(url.href);
+  }
+  return attachments;
+}
+
+export function captureGmailConversationDocument(document, sourceUrl = document.URL, captureImages = false) {
   if (!isGmailDocument(document)) throw new Error('This is not a Gmail conversation.');
 
   const messages = [...document.querySelectorAll('.adn.ads, .adn')]
@@ -294,9 +334,21 @@ export function captureGmailConversationDocument(document, sourceUrl = document.
   );
   const conversation = document.createElement('div');
   messages.forEach((message, index) => {
-    const body = message.querySelector('.a3s').cloneNode(true);
+    const originalBody = message.querySelector('.a3s');
+    const body = originalBody.cloneNode(true);
     cleanGmailMessageBody(body, { removeQuotedHistory: messages.length > 1 });
-    if (!cleanText(body.textContent) && !body.querySelector('img,table,pre')) return;
+    const attachments = captureImages ? gmailImageAttachments(message, document) : [];
+    if (captureImages) {
+      const originals = [...originalBody.querySelectorAll('img')];
+      const clones = [...body.querySelectorAll('img')];
+      for (const [imageIndex, cloned] of clones.entries()) {
+        const original = originals.find(image => image.getAttribute('src') === cloned.getAttribute('src'));
+        const url = original?.currentSrc || cloned.getAttribute('src');
+        if (url) cloned.setAttribute('src', url);
+        if (!cleanText(cloned.getAttribute('alt'))) cloned.setAttribute('alt', `Inline image ${imageIndex + 1}`);
+      }
+    }
+    if (!cleanText(body.textContent) && !body.querySelector('img,table,pre') && !attachments.length) return;
 
     const { recipients, sender, timestamp } = gmailMessageMetadata(message);
     const heading = [sender || 'Unknown sender', timestamp].filter(Boolean).join(' — ');
@@ -310,12 +362,25 @@ export function captureGmailConversationDocument(document, sourceUrl = document.
       conversation.append(metadata);
     }
     conversation.append(body);
+    if (attachments.length) {
+      const headingNode = document.createElement('h3');
+      headingNode.textContent = 'Image attachments';
+      conversation.append(headingNode);
+      for (const attachment of attachments) {
+        const paragraph = document.createElement('p');
+        const image = document.createElement('img');
+        image.setAttribute('src', attachment.url);
+        image.setAttribute('alt', attachment.filename);
+        paragraph.append(image);
+        conversation.append(paragraph);
+      }
+    }
   });
 
   if (!conversation.childNodes.length) {
     throw new Error('The loaded Gmail messages did not contain readable content.');
   }
-  return webpageResult(document, sourceUrl, conversation.innerHTML, subject);
+  return webpageResult(document, sourceUrl, conversation.innerHTML, subject, captureImages);
 }
 
 export function captureWebpageDocument(document, sourceUrl = document.URL) {
@@ -371,6 +436,91 @@ export function captureFullPageDocument(document, sourceUrl = document.URL, capt
   pruneEmptyContent(content);
 
   return webpageResult(document, sourceUrl, content.innerHTML, document.title, captureImages);
+}
+
+export function craigslistGalleryUrls(document) {
+  const urls = [];
+  const seen = new Set();
+  const add = value => {
+    if (!value) return;
+    const url = absoluteUrl(value, document.baseURI);
+    if (!/^https?:\/\//i.test(url) || seen.has(url)) return;
+    seen.add(url);
+    urls.push(url);
+  };
+  const fullSizeUrl = value => {
+    if (!value) return null;
+    const id = value.match(/^(?:\d+:)?([A-Za-z0-9_-]+)$/)?.[1];
+    if (id) return `https://images.craigslist.org/${id}_1200x900.jpg`;
+    const url = absoluteUrl(value, document.baseURI);
+    if (!/^https?:\/\/images\.craigslist\.org\//i.test(url)) return null;
+    return url.replace(/_(?:50x50c|300x300|600x450)(?=\.[a-z]+(?:$|[?#]))/i, '_1200x900');
+  };
+
+  const gallery = document.querySelector('.gallery, #thumbs');
+  if (!gallery) return urls;
+  const thumbnails = document.querySelector('#thumbs') || gallery;
+  for (const link of thumbnails.querySelectorAll('a[href]')) add(fullSizeUrl(link.getAttribute('href')));
+  if (urls.length) return urls;
+  for (const item of [gallery, ...gallery.querySelectorAll('[data-ids]')]) {
+    for (const entry of (item.getAttribute('data-ids') || '').split(',')) add(fullSizeUrl(entry.trim()));
+  }
+  for (const item of gallery.querySelectorAll('[data-imgid], a, img')) {
+    const image = item.matches('img') ? item : item.querySelector('img');
+    const url = fullSizeUrl(item.getAttribute('href'))
+      || fullSizeUrl(image?.getAttribute('data-imgid'))
+      || fullSizeUrl(image?.getAttribute('data-src'))
+      || fullSizeUrl(image?.getAttribute('src'))
+      || fullSizeUrl(item.getAttribute('data-imgid'));
+    add(url);
+  }
+  if (!urls.length) add(fullSizeUrl(document.querySelector('#iwi, .gallery img')?.getAttribute('src')));
+  return urls;
+}
+
+export function captureCraigslistDocument(document, sourceUrl = document.URL, captureImages = false) {
+  const title = cleanText(document.querySelector('#titletextonly')?.textContent || document.querySelector('h1')?.textContent || document.title, 'Craigslist post');
+  const post = document.querySelector('#postingbody');
+  if (!post) throw new Error('Could not find the Craigslist post content.');
+  const content = document.createElement('div');
+  const price = cleanText(document.querySelector('.price')?.textContent);
+  if (price) {
+    const line = document.createElement('p');
+    line.textContent = `Price: ${price}`;
+    content.append(line);
+  }
+  const attributes = document.querySelectorAll('.attrgroup .attr, .attrgroup > span');
+  if (attributes.length) {
+    const details = document.createElement('ul');
+    for (const item of attributes) {
+      const value = item.matches('.attr')
+        ? cleanText(Array.from(item.children, child => cleanText(child.textContent)).filter(Boolean).join(' '))
+        : cleanText(item.textContent);
+      if (!value) continue;
+      const line = document.createElement('li');
+      line.textContent = value;
+      details.append(line);
+    }
+    if (details.children.length) content.append(details);
+  }
+  const body = post.cloneNode(true);
+  body.querySelectorAll('.print-information, .qr-code-container, script, style').forEach(node => node.remove());
+  content.append(body);
+  const gallery = craigslistGalleryUrls(document);
+  if (gallery.length) {
+    const heading = document.createElement('h2');
+    heading.textContent = 'Photos';
+    content.append(heading);
+    for (const [index, url] of gallery.entries()) {
+      const paragraph = document.createElement('p');
+      const image = document.createElement('img');
+      image.setAttribute('src', url);
+      image.setAttribute('alt', `Photo ${index + 1}`);
+      paragraph.append(image);
+      content.append(paragraph);
+    }
+  }
+  return webpageResult(document, sourceUrl, content.innerHTML, title, captureImages);
 }
 
 export function selectionToMarkdown(document, sourceUrl = document.URL) {

@@ -2096,10 +2096,12 @@ var MarkdownCaptureWebpage = (() => {
   // src/webpage.js
   var webpage_exports = {};
   __export(webpage_exports, {
+    captureCraigslistDocument: () => captureCraigslistDocument,
     captureFullPageDocument: () => captureFullPageDocument,
     captureGmailConversationDocument: () => captureGmailConversationDocument,
     captureWebpageDocument: () => captureWebpageDocument,
     contentToMarkdown: () => contentToMarkdown,
+    craigslistGalleryUrls: () => craigslistGalleryUrls,
     normalizeContentUrls: () => normalizeContentUrls,
     selectionToMarkdown: () => selectionToMarkdown,
     webpageMarkdownFilename: () => webpageMarkdownFilename
@@ -2900,12 +2902,11 @@ var MarkdownCaptureWebpage = (() => {
     });
     return root2;
   }
-  function contentToMarkdown(content, { baseUrl, document: document2, imageAssets }) {
+  function contentToMarkdown(content, { baseUrl, document: document2, imageAssets, preserveSource = false }) {
     const container = document2.createElement("div");
     container.innerHTML = content;
-    container.querySelectorAll([
-      "[hidden]",
-      '[aria-hidden="true"]',
+    container.querySelectorAll('[hidden], [aria-hidden="true"]').forEach((node) => node.remove());
+    if (!preserveSource) container.querySelectorAll([
       '[role="menu"]',
       '[role="menubar"]',
       '[role="menuitem"]',
@@ -2918,6 +2919,19 @@ var MarkdownCaptureWebpage = (() => {
       ".msg-s-event-listitem__actions-container"
     ].join(",")).forEach((node) => node.remove());
     normalizeContentUrls(container, baseUrl);
+    const portableImage = (image) => /^https?:/i.test(image.getAttribute("src") || "");
+    container.querySelectorAll("img").forEach((image) => {
+      const alt = (image.getAttribute("alt") || "").trim();
+      const nearbyText = Array.from(image.parentElement.childNodes, (node) => node.textContent).join(" ").trim().toLowerCase();
+      const statusLabel = alt.replace(/ status$/i, "").toLowerCase();
+      const decorative = image.getAttribute("role") === "presentation" || image.getAttribute("role") === "none" || image.getAttribute("alt") === "";
+      const redundantStatus = / status$/i.test(alt) && nearbyText.split(/\s+/).includes(statusLabel);
+      if (!preserveSource && (decorative || redundantStatus)) {
+        image.remove();
+      } else if (!imageAssets && !portableImage(image)) {
+        image.replaceWith(document2.createTextNode(` ${alt || "[Image]"} `));
+      }
+    });
     const turndown = new TurndownService({
       bulletListMarker: "-",
       codeBlockStyle: "fenced",
@@ -3125,7 +3139,33 @@ ${body}
     const recipients = cleanText(message.querySelector(".hb")?.textContent);
     return { recipients, sender, timestamp };
   }
-  function captureGmailConversationDocument(document2, sourceUrl = document2.URL) {
+  var gmailImageExtensions = /\.(?:jpe?g|png|gif|webp|avif|bmp|heic|heif)\b/i;
+  function gmailImageAttachments(message, document2) {
+    const attachments = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const link of message.querySelectorAll('a[href*="view=att"]')) {
+      let url;
+      try {
+        url = new URL(link.getAttribute("href"), document2.baseURI);
+      } catch {
+        continue;
+      }
+      if (url.protocol !== "https:" || url.hostname !== "mail.google.com" || url.searchParams.get("view") !== "att" || seen.has(url.href)) continue;
+      const siblingLabels = [...link.parentElement?.children || []].filter((node) => node !== link).map((node) => node.textContent);
+      const labels = [link.getAttribute("download"), url.searchParams.get("filename"), url.searchParams.get("name"), link.getAttribute("aria-label"), link.getAttribute("title"), link.textContent, ...siblingLabels];
+      let label = labels.map((value) => cleanText(value)).find((value) => gmailImageExtensions.test(value));
+      if (!label) {
+        const parentLabel = cleanText(link.parentElement?.textContent);
+        if ((parentLabel.match(/\.[a-z0-9]{2,6}\b/gi) || []).length === 1 && gmailImageExtensions.test(parentLabel)) label = parentLabel;
+      }
+      if (!label) continue;
+      const filename = label.replace(/^(?:download|preview)(?:\s+attachment)?\s+/i, "").match(/([^/\\<>:"|?*]+\.(?:jpe?g|png|gif|webp|avif|bmp|heic|heif))\b/i)?.[1]?.trim() || "Image attachment";
+      attachments.push({ url: url.href, filename });
+      seen.add(url.href);
+    }
+    return attachments;
+  }
+  function captureGmailConversationDocument(document2, sourceUrl = document2.URL, captureImages = false) {
     if (!isGmailDocument(document2)) throw new Error("This is not a Gmail conversation.");
     const messages = [...document2.querySelectorAll(".adn.ads, .adn")].filter((message, index, all) => message.querySelector(".a3s") && !all.some((other) => other !== message && other.contains(message)));
     if (!messages.length) {
@@ -3137,9 +3177,21 @@ ${body}
     );
     const conversation = document2.createElement("div");
     messages.forEach((message, index) => {
-      const body = message.querySelector(".a3s").cloneNode(true);
+      const originalBody = message.querySelector(".a3s");
+      const body = originalBody.cloneNode(true);
       cleanGmailMessageBody(body, { removeQuotedHistory: messages.length > 1 });
-      if (!cleanText(body.textContent) && !body.querySelector("img,table,pre")) return;
+      const attachments = captureImages ? gmailImageAttachments(message, document2) : [];
+      if (captureImages) {
+        const originals = [...originalBody.querySelectorAll("img")];
+        const clones = [...body.querySelectorAll("img")];
+        for (const [imageIndex, cloned] of clones.entries()) {
+          const original = originals.find((image) => image.getAttribute("src") === cloned.getAttribute("src"));
+          const url = original?.currentSrc || cloned.getAttribute("src");
+          if (url) cloned.setAttribute("src", url);
+          if (!cleanText(cloned.getAttribute("alt"))) cloned.setAttribute("alt", `Inline image ${imageIndex + 1}`);
+        }
+      }
+      if (!cleanText(body.textContent) && !body.querySelector("img,table,pre") && !attachments.length) return;
       const { recipients, sender, timestamp } = gmailMessageMetadata(message);
       const heading = [sender || "Unknown sender", timestamp].filter(Boolean).join(" \u2014 ");
       if (index) conversation.append(document2.createElement("hr"));
@@ -3152,11 +3204,24 @@ ${body}
         conversation.append(metadata);
       }
       conversation.append(body);
+      if (attachments.length) {
+        const headingNode2 = document2.createElement("h3");
+        headingNode2.textContent = "Image attachments";
+        conversation.append(headingNode2);
+        for (const attachment of attachments) {
+          const paragraph = document2.createElement("p");
+          const image = document2.createElement("img");
+          image.setAttribute("src", attachment.url);
+          image.setAttribute("alt", attachment.filename);
+          paragraph.append(image);
+          conversation.append(paragraph);
+        }
+      }
     });
     if (!conversation.childNodes.length) {
       throw new Error("The loaded Gmail messages did not contain readable content.");
     }
-    return webpageResult(document2, sourceUrl, conversation.innerHTML, subject);
+    return webpageResult(document2, sourceUrl, conversation.innerHTML, subject, captureImages);
   }
   function captureWebpageDocument(document2, sourceUrl = document2.URL) {
     if (isGmailDocument(document2)) return captureGmailConversationDocument(document2, sourceUrl);
@@ -3206,6 +3271,82 @@ ${body}
     removeAdjacentDuplicateLinks(content);
     pruneEmptyContent(content);
     return webpageResult(document2, sourceUrl, content.innerHTML, document2.title, captureImages);
+  }
+  function craigslistGalleryUrls(document2) {
+    const urls = [];
+    const seen = /* @__PURE__ */ new Set();
+    const add = (value) => {
+      if (!value) return;
+      const url = absoluteUrl(value, document2.baseURI);
+      if (!/^https?:\/\//i.test(url) || seen.has(url)) return;
+      seen.add(url);
+      urls.push(url);
+    };
+    const fullSizeUrl = (value) => {
+      if (!value) return null;
+      const id = value.match(/^(?:\d+:)?([A-Za-z0-9_-]+)$/)?.[1];
+      if (id) return `https://images.craigslist.org/${id}_1200x900.jpg`;
+      const url = absoluteUrl(value, document2.baseURI);
+      if (!/^https?:\/\/images\.craigslist\.org\//i.test(url)) return null;
+      return url.replace(/_(?:50x50c|300x300|600x450)(?=\.[a-z]+(?:$|[?#]))/i, "_1200x900");
+    };
+    const gallery = document2.querySelector(".gallery, #thumbs");
+    if (!gallery) return urls;
+    const thumbnails = document2.querySelector("#thumbs") || gallery;
+    for (const link of thumbnails.querySelectorAll("a[href]")) add(fullSizeUrl(link.getAttribute("href")));
+    if (urls.length) return urls;
+    for (const item of [gallery, ...gallery.querySelectorAll("[data-ids]")]) {
+      for (const entry of (item.getAttribute("data-ids") || "").split(",")) add(fullSizeUrl(entry.trim()));
+    }
+    for (const item of gallery.querySelectorAll("[data-imgid], a, img")) {
+      const image = item.matches("img") ? item : item.querySelector("img");
+      const url = fullSizeUrl(item.getAttribute("href")) || fullSizeUrl(image?.getAttribute("data-imgid")) || fullSizeUrl(image?.getAttribute("data-src")) || fullSizeUrl(image?.getAttribute("src")) || fullSizeUrl(item.getAttribute("data-imgid"));
+      add(url);
+    }
+    if (!urls.length) add(fullSizeUrl(document2.querySelector("#iwi, .gallery img")?.getAttribute("src")));
+    return urls;
+  }
+  function captureCraigslistDocument(document2, sourceUrl = document2.URL, captureImages = false) {
+    const title = cleanText(document2.querySelector("#titletextonly")?.textContent || document2.querySelector("h1")?.textContent || document2.title, "Craigslist post");
+    const post = document2.querySelector("#postingbody");
+    if (!post) throw new Error("Could not find the Craigslist post content.");
+    const content = document2.createElement("div");
+    const price = cleanText(document2.querySelector(".price")?.textContent);
+    if (price) {
+      const line = document2.createElement("p");
+      line.textContent = `Price: ${price}`;
+      content.append(line);
+    }
+    const attributes = document2.querySelectorAll(".attrgroup .attr, .attrgroup > span");
+    if (attributes.length) {
+      const details = document2.createElement("ul");
+      for (const item of attributes) {
+        const value = item.matches(".attr") ? cleanText(Array.from(item.children, (child) => cleanText(child.textContent)).filter(Boolean).join(" ")) : cleanText(item.textContent);
+        if (!value) continue;
+        const line = document2.createElement("li");
+        line.textContent = value;
+        details.append(line);
+      }
+      if (details.children.length) content.append(details);
+    }
+    const body = post.cloneNode(true);
+    body.querySelectorAll(".print-information, .qr-code-container, script, style").forEach((node) => node.remove());
+    content.append(body);
+    const gallery = craigslistGalleryUrls(document2);
+    if (gallery.length) {
+      const heading = document2.createElement("h2");
+      heading.textContent = "Photos";
+      content.append(heading);
+      for (const [index, url] of gallery.entries()) {
+        const paragraph = document2.createElement("p");
+        const image = document2.createElement("img");
+        image.setAttribute("src", url);
+        image.setAttribute("alt", `Photo ${index + 1}`);
+        paragraph.append(image);
+        content.append(paragraph);
+      }
+    }
+    return webpageResult(document2, sourceUrl, content.innerHTML, title, captureImages);
   }
   function selectionToMarkdown(document2, sourceUrl = document2.URL) {
     const selection = document2.getSelection();

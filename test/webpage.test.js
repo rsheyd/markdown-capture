@@ -3,13 +3,51 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import {
+  captureCraigslistDocument,
   captureFullPageDocument,
   captureGmailConversationDocument,
   captureWebpageDocument,
+  craigslistGalleryUrls,
   contentToMarkdown,
   selectionToMarkdown,
   webpageMarkdownFilename
 } from '../src/webpage.js';
+
+test('Craigslist export retains post details and every full-size gallery image in order', () => {
+  const url = 'https://providence.craigslist.org/rvs/d/bristol-scamp-trailer/1234567890.html';
+  const document = new JSDOM(`<!doctype html><title>Scamp trailer - craigslist</title><h1><span id="titletextonly">2014 Scamp 13 with Bathroom</span><span class="price">$13,500</span></h1><div class="attrgroup"><span>condition: good</span><span>length (feet): 13</span></div><div class="gallery"><img id="iwi" src="https://images.craigslist.org/first_600x450.jpg"><div id="thumbs" data-ids="1:first,2:second_photo,3:third"><a data-imgid="1:first"><img src="https://images.craigslist.org/first_50x50c.jpg"></a><a data-imgid="2:second_photo"><img src="https://images.craigslist.org/second_photo_50x50c.jpg"></a><a data-imgid="3:third"><img src="https://images.craigslist.org/third_50x50c.jpg"></a></div></div><section id="postingbody">Lightweight fiberglass trailer.</section>`, { url }).window.document;
+  const result = captureCraigslistDocument(document, url, true);
+  assert.match(result.markdown, /^# 2014 Scamp 13 with Bathroom/);
+  assert.match(result.markdown, /Price: \$13,500/);
+  assert.match(result.markdown, /condition: good/);
+  assert.match(result.markdown, /Lightweight fiberglass trailer/);
+  assert.deepEqual(result.imageAssets.map(image => image.url), ['first', 'second_photo', 'third'].map(id => `https://images.craigslist.org/${id}_1200x900.jpg`));
+  assert.equal((result.markdown.match(/!\[Photo \d\]/g) || []).length, 3);
+  assert.doesNotMatch(result.markdown, /50x50c|600x450/);
+});
+
+test('Craigslist export keeps image links in plain Markdown and rejects a missing post body', () => {
+  const url = 'https://boston.craigslist.org/rvs/d/test/1234567890.html';
+  const document = new JSDOM('<h1 id="titletextonly">Trailer</h1><div id="thumbs"><a><img src="https://images.craigslist.org/abc_300x300.jpg"></a></div><section id="postingbody">A trailer.</section>', { url }).window.document;
+  const result = captureCraigslistDocument(document);
+  assert.match(result.markdown, /https:\/\/images\.craigslist\.org\/abc_1200x900\.jpg/);
+  document.querySelector('#postingbody').remove();
+  assert.throws(() => captureCraigslistDocument(document), /Could not find the Craigslist post content/);
+});
+
+test('current Craigslist gallery links resolve all full-size images without losing the filename prefix', () => {
+  const url = 'https://www.craigslist.org/view/d/bristol-trailer/nBYjPFY3H9nyYoEUw9Wbq4';
+  const thumbs = Array.from({ length: 13 }, (_, index) => `<a class="thumb" data-imgid="photo_${index}" href="https://images.craigslist.org/00a0a_photo_${index}_0CI0t2_600x450.jpg"><img src="https://images.craigslist.org/00a0a_photo_${index}_0CI0t2_50x50c.jpg"></a>`).join('');
+  const document = new JSDOM(`<h1><span id="titletextonly">Trailer</span><span class="price">$13,500</span></h1><div class="gallery"><div class="swipe"><div class="slide" data-imgid="photo_0"><img src="https://images.craigslist.org/00a0a_photo_0_0CI0t2_1200x900.jpg"></div></div><div id="thumbs">${thumbs}</div></div><div class="attrgroup"><div class="attr condition"><span class="labl">condition:</span><span class="valu">good</span></div></div><section id="postingbody">Lightweight trailer.</section>`, { url }).window.document;
+  const urls = craigslistGalleryUrls(document);
+  assert.equal(urls.length, 13);
+  assert.equal(urls[0], 'https://images.craigslist.org/00a0a_photo_0_0CI0t2_1200x900.jpg');
+  assert.equal(urls[12], 'https://images.craigslist.org/00a0a_photo_12_0CI0t2_1200x900.jpg');
+  const result = captureCraigslistDocument(document, url, true);
+  assert.equal(result.imageAssets.length, 13);
+  assert.match(result.markdown, /condition: good/);
+  assert.doesNotMatch(result.markdown, /600x450|50x50c/);
+});
 
 async function fixture(name, url = `https://example.com/articles/${name}`) {
   const html = await readFile(new URL(`./fixtures/${name}`, import.meta.url), 'utf8');
@@ -82,6 +120,31 @@ test('preserves forwarded or quoted content when Gmail exposes one loaded messag
   const result = captureGmailConversationDocument(document);
   assert.match(result.markdown, /Please review the message below/);
   assert.match(result.markdown, /Forwarded message content that must remain/);
+});
+
+test('Gmail image ZIP capture includes inline photos and attached images without changing plain capture', () => {
+  const url = 'https://mail.google.com/mail/u/0/#inbox/thread-id';
+  const document = new JSDOM(`<!doctype html><title>Pictures - Gmail</title><h2 class="hP">Pictures</h2><section class="adn ads"><span class="gD" name="Alex" email="alex@example.com">Alex</span><div class="a3s"><p>See these photos.</p><img src="https://mail.google.com/mail/u/0/inline.jpg" alt=""><img src="https://mail.google.com/mail/u/0/images/cleardot.gif" alt=""></div><div class="aQH"><a href="https://mail.google.com/mail/u/0/?view=att&attid=0.1" title="Download attachment beach.png">Download</a><a href="https://mail.google.com/mail/u/0/?view=att&attid=0.2" title="Download attachment notes.pdf">Download</a></div></section>`, { url }).window.document;
+  const plain = captureGmailConversationDocument(document);
+  assert.doesNotMatch(plain.markdown, /beach\.png|Inline image/);
+  const result = captureGmailConversationDocument(document, url, true);
+  assert.match(result.markdown, /See these photos/);
+  assert.match(result.markdown, /Inline image 1/);
+  assert.match(result.markdown, /beach\.png/);
+  assert.doesNotMatch(result.markdown, /notes\.pdf|cleardot/);
+  assert.deepEqual(result.imageAssets.map(image => image.url), [
+    'https://mail.google.com/mail/u/0/inline.jpg',
+    'https://mail.google.com/mail/u/0/?view=att&attid=0.1'
+  ]);
+});
+
+test('Gmail image ZIP captures an attachment-only message without borrowing another file label', () => {
+  const url = 'https://mail.google.com/mail/u/0/#inbox/thread-id';
+  const document = new JSDOM('<title>Attachments - Gmail</title><h2 class="hP">Attachments</h2><section class="adn ads"><span class="gD" email="alex@example.com">Alex</span><div class="a3s"></div><div class="aQH"><div><a href="https://mail.google.com/mail/u/0/?view=att&attid=0.1">Download</a><span>beach.png</span></div><div><a href="https://mail.google.com/mail/u/0/?view=att&attid=0.2">Download</a><span>notes.pdf</span></div></div></section>', { url }).window.document;
+  const result = captureGmailConversationDocument(document, url, true);
+  assert.deepEqual(result.imageAssets.map(image => image.url), ['https://mail.google.com/mail/u/0/?view=att&attid=0.1']);
+  assert.match(result.markdown, /!\[beach\.png\]/);
+  assert.doesNotMatch(result.markdown, /notes\.pdf/);
 });
 
 test('preserves form content and meaningful control state in full-page capture', async () => {
@@ -169,6 +232,15 @@ test('checked-in browser bundle exposes the converter and captures a fixture', a
   assert.equal(result.title, 'Field Notes: Tidal Marshes');
   assert.match(result.markdown, /Salt marshes sit between land and sea/);
   assert.equal(typeof dom.window.MarkdownCaptureWebpage.captureFullPageDocument, 'function');
+  const policies = dom.window.MarkdownCaptureWebpage;
+  const selectedHtml = '<p>Submitted</p><button>Manage</button><img alt="Statement" src="data:image/png;base64,AA">';
+  for (const preserveSource of [false, true]) {
+    const output = policies.contentToMarkdown(selectedHtml, { document: dom.window.document, baseUrl: dom.window.document.URL, preserveSource });
+    assert.equal(output.includes('Manage'), preserveSource);
+    assert.match(output, /Statement/);
+    assert.doesNotMatch(output, /data:/);
+  }
+
 
   const paragraph = dom.window.document.querySelector('article p');
   const range = dom.window.document.createRange();
@@ -226,4 +298,56 @@ test('converts every non-collapsed DOM range exposed by the selection', () => {
   });
 
   assert.equal(selectionToMarkdown(document), 'First range\n\nSecond range');
+});
+
+test('readable copy keeps transfer content without embedding thumbnail and status payloads', () => {
+  const document = new JSDOM('', { url: 'https://example.com/confirmation' }).window.document;
+  const html = `<h2>Transfer details</h2><p>From</p><p>Example HSA</p>
+    <h2>Attachment details</h2><div><img alt="statement.pdf" src="data:image/jpeg;base64,${'A'.repeat(500000)}"><span>158 kB</span></div>
+    <h2>Next steps</h2><div><img alt="complete status" src="data:image/svg+xml,encoded"><span>Complete</span><p>Your request is submitted</p></div>
+    <img alt="" src="https://example.com/decorative.svg"><img alt="Chart" src="/chart.png">
+    <p><a href="/next">Next transfer</a></p>`;
+  const options = { document, baseUrl: document.URL };
+  const markdown = contentToMarkdown(html, options);
+  assert.ok(markdown.length < 500);
+  assert.doesNotMatch(markdown, /data:|decorative|complete status/);
+  assert.match(markdown, /statement\.pdf/);
+  assert.match(markdown, /Complete/);
+  assert.match(markdown, /Your request is submitted/);
+  assert.match(markdown, /!\[Chart\]\(https:\/\/example.com\/chart.png\)/);
+  assert.match(markdown, /\[Next transfer\]\(https:\/\/example.com\/next\)/);
+  const preserved = contentToMarkdown(html, { ...options, preserveSource: true });
+  assert.match(preserved, /complete status/);
+  assert.match(preserved, /decorative.svg/);
+  assert.doesNotMatch(preserved, /data:/);
+});
+
+test('both copy policies preserve meaning and structure and avoid temporary image URLs', () => {
+  const document = new JSDOM('', { url: 'https://example.com/' }).window.document;
+  const html = `<h2>Instructions</h2><ul><li>First</li><li>Second</li></ul>
+    <pre><code>const x = 1;</code></pre><table><tr><th>Label</th><th>Value</th></tr><tr><td>Date</td><td>October 13</td></tr></table>
+    <img src="blob:https://example.com/123" alt="Important diagram"><img src="data:image/png;base64,AA">
+    <button>Manage transfer</button><p hidden>Hidden implementation</p>`;
+  for (const preserveSource of [false, true]) {
+    const markdown = contentToMarkdown(html, { document, baseUrl: document.URL, preserveSource });
+    assert.match(markdown, /## Instructions/);
+    assert.match(markdown, /-\s+First\n-\s+Second/);
+    assert.match(markdown, /```\nconst x = 1;\n```/);
+    assert.match(markdown, /\| Date \| October 13 \|/);
+    assert.match(markdown, /Important diagram/);
+    assert.match(markdown, /Image/);
+    assert.doesNotMatch(markdown, /blob:|data:|Hidden implementation/);
+    assert.equal(markdown.includes('Manage transfer'), preserveSource);
+  }
+});
+
+test('image packaging retains meaningful embedded assets for the ZIP path', () => {
+  const document = new JSDOM('').window.document;
+  const imageAssets = [];
+  const markdown = contentToMarkdown('<img alt="Diagram" src="data:image/png;base64,AA">', {
+    document, baseUrl: 'https://example.com/', imageAssets
+  });
+  assert.equal(imageAssets.length, 1);
+  assert.equal(imageAssets[0].url, 'data:image/png;base64,AA');
+  assert.match(markdown, /markdown-capture-image-/);
 });

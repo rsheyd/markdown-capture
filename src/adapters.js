@@ -98,10 +98,40 @@ const webpageAdapter = {
 
   actions() {
     return [
-      action('webpage-copy', 'Copy Main Content', 'copy', { mode: 'main' }),
-      action('webpage-full-copy', 'Copy Full Page Content', 'copy', { mode: 'full' }),
-      action('webpage-full-download', 'Download Full Page Content', 'download', { mode: 'full' }),
+      action('webpage-copy', 'Copy main content', 'copy', { mode: 'main' }),
+      action('webpage-full-copy', 'Copy page content', 'copy', { mode: 'full' }),
+      action('webpage-full-download', 'Download page content', 'download', { mode: 'full' }),
       action('webpage-images-download', 'Download with images', 'download', { mode: 'full', images: true })
+    ];
+  },
+
+  capture({ tab, action: selectedAction }, dependencies) {
+    return dependencies.captureWebpage(tab.id, tab.url, selectedAction.mode, Boolean(selectedAction.images));
+  }
+};
+
+const craigslistAdapter = {
+  id: 'craigslist',
+  label: 'Craigslist post',
+
+  detect(tab) {
+    if (!tab?.url) return null;
+    try {
+      const url = new URL(tab.url);
+      const craigslistHost = url.hostname === 'craigslist.org' || url.hostname.endsWith('.craigslist.org');
+      const legacyPost = /\/d\/[^/]+\/\d+\.html$/.test(url.pathname);
+      const currentPost = /^\/view\/d\/[^/]+\/[A-Za-z0-9]+\/?$/.test(url.pathname);
+      return url.protocol === 'https:' && craigslistHost && (legacyPost || currentPost) ? {} : null;
+    } catch {
+      return null;
+    }
+  },
+
+  actions() {
+    return [
+      action('craigslist-copy', 'Copy post', 'copy', { mode: 'craigslist' }),
+      action('craigslist-download', 'Download Markdown', 'download', { mode: 'craigslist' }),
+      action('craigslist-images-download', 'Download with images', 'download', { mode: 'craigslist', images: true })
     ];
   },
 
@@ -127,7 +157,8 @@ const gmailAdapter = {
   actions() {
     return [
       action('gmail-copy', 'Copy Conversation', 'copy', { mode: 'gmail' }),
-      action('gmail-download', 'Download Conversation', 'download', { mode: 'gmail' })
+      action('gmail-download', 'Download Conversation', 'download', { mode: 'gmail' }),
+      action('gmail-images-download', 'Download with images', 'download', { mode: 'gmail', images: true })
     ];
   },
 
@@ -136,7 +167,7 @@ const gmailAdapter = {
   }
 };
 
-export const adapters = [redditAdapter, pdfAdapter, gmailAdapter, webpageAdapter];
+export const adapters = [redditAdapter, pdfAdapter, gmailAdapter, craigslistAdapter, webpageAdapter];
 
 export function detectSource(tab) {
   for (const adapter of adapters) {

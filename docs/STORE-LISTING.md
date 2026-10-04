@@ -57,6 +57,8 @@ If the dashboard defines "collected" as data transmitted off-device, select that
 - `clipboardWrite`: Writes Markdown when the user chooses a Copy action.
 - `contextMenus`: Adds the user-invoked Copy Selection as Markdown action.
 - `downloads`: Saves a Markdown file or a ZIP containing Markdown and downloaded images when the user chooses a Download action.
+- `storage`: Remembers the two optional export checkboxes so popup, context-menu, and keyboard selection actions use the same preferences.
+- Optional `https://images.craigslist.org/*` host access: Requested only when the user chooses **Download with images** on a Craigslist post, so the extension can fetch gallery image bytes across the post and image subdomains for the ZIP. Requests omit credentials.
 
 **Remote code:** No. All executable code and conversion dependencies are included in the extension package. Network requests only retrieve content the user explicitly chose to export.
 
@@ -65,11 +67,11 @@ If the dashboard defines "collected" as data transmitted off-device, select that
 No account or test credentials are required for the general workflow.
 
 1. Open a public article over HTTPS and click Markdown Capture.
-2. Choose Copy Main Content and paste into a text editor.
+2. Choose Copy main content and paste into a text editor.
 3. Select a heading, link, and paragraph on the page; right-click and choose Copy Selection as Markdown; paste the result.
 4. Open a public Reddit post and use Copy Markdown under All comments.
 5. Open a public URL ending in `.pdf` and use Copy PDF as Markdown.
-6. On an ordinary webpage with images, choose Download with images, keep the popup open, and extract the saved ZIP. Confirm the Markdown and sibling image folder use relative image links; unavailable images retain web URLs with a popup failure count.
+6. On an ordinary webpage or Gmail conversation with images, choose Download with images, keep the popup open, and extract the saved ZIP. Confirm the Markdown and sibling image folder use relative image links; unavailable images retain web URLs with a popup failure count. Gmail image attachments require the reviewer to use their own account.
 7. Enable Include capture time and SHA-256, repeat an export, and inspect the source URL, UTC timestamp, hash, and stated hash scope in the Markdown metadata block.
 
 The Gmail PDF path requires the reviewer to use their own Gmail account and a PDF attachment; it does not require credentials supplied by the developer.

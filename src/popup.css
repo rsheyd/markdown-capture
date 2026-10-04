@@ -1,11 +1,14 @@
 :root {
   color-scheme: light dark;
-  font: 13px system-ui, sans-serif;
+  font: 15px system-ui, sans-serif;
+  --secondary-text: light-dark(#525b68, #b8bec8);
+  --success-text: light-dark(#15803d, #4ade80);
+  --error-text: light-dark(#b91c1c, #f87171);
 }
 
 body {
   margin: 0;
-  min-width: 240px;
+  min-width: 280px;
 }
 
 main {
@@ -13,14 +16,14 @@ main {
 }
 
 .source-label {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 650;
   padding: 5px 8px 3px;
 }
 
 .group-label {
-  color: #6b7280;
-  font-size: 11px;
+  color: var(--secondary-text);
+  font-size: 12px;
   font-weight: 600;
   padding: 7px 8px 4px;
   text-transform: uppercase;
@@ -34,6 +37,7 @@ button {
   cursor: pointer;
   display: block;
   font: inherit;
+  font-weight: 500;
   padding: 7px 8px;
   text-align: left;
   width: 100%;
@@ -49,7 +53,7 @@ button:disabled, .group-label.disabled {
 }
 
 #status {
-  color: #15803d;
+  color: var(--success-text);
   display: none;
   margin: 6px 8px 2px;
 }
@@ -59,7 +63,7 @@ button:disabled, .group-label.disabled {
 }
 
 #status.error {
-  color: #b91c1c;
+  color: var(--error-text);
 }
 
 #export-options {
@@ -77,5 +81,48 @@ button:disabled, .group-label.disabled {
 #export-options small {
   display: block;
   margin: 4px 0 0 23px;
-  opacity: 0.7;
+  color: var(--secondary-text);
+  font-size: 13px;
+}
+
+#primary-action {
+  background: color-mix(in srgb, #174ea6 12%, transparent);
+  color: light-dark(#174ea6, #aecbfa);
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+#primary-action:hover:not(:disabled), #primary-action:focus-visible {
+  background: color-mix(in srgb, #174ea6 20%, transparent);
+}
+
+#primary-description {
+  color: var(--secondary-text);
+  font-size: 13px;
+  margin: 3px 8px 10px;
+}
+
+#more-options {
+  border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  margin-top: 8px;
+}
+
+#more-options summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 9px 8px;
+}
+
+#more-options summary::-webkit-details-marker { display: none; }
+#more-options summary::after { content: '›'; float: right; }
+#more-options[open] summary::after { content: '⌄'; }
+#more-options summary:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+#more-options .group-label { padding-top: 10px; }
+
+#status button {
+  color: inherit;
+  font-weight: 600;
+  margin-top: 4px;
+  padding-left: 0;
 }

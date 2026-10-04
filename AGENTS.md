@@ -10,6 +10,11 @@
 - Keep `manifest.json` at its current version during development. Consolidate user-visible changes under that version in `CHANGELOG.md`, with its heading marked `Unreleased` until the corresponding GitHub release exists. Increase the version only as part of a requested release; date the heading during the release flow. Minor documentation, planning, template-copy, test-only, and internal-maintenance changes do not require a bump.
 - Use the MIT-licensed [Copy as Markdown](https://github.com/yorkxin/copy-as-markdown) source as a practical reference when debugging selection capture, context menus, frame targeting, or clipboard behavior.
 
+- Treat readable plain-text Markdown as a product contract: retain meaning, reading order, useful links, labels, headings, lists, tables, quotes, and code; omit presentation machinery conservatively. Never classify an image as decorative solely by its size.
+- Use one shared HTML converter with explicit default and preserve-source policies. Ordinary Markdown must not contain embedded image payloads or temporary blob URLs; retain meaningful labels or an image placeholder. Actual assets belong in the image ZIP path.
+- Keep the webpage popup context-aware and compact: selection copy is primary when text is selected, otherwise main-content copy is primary; alternate actions live under More options, and failed main extraction offers page-content copy. Keep a single default right-click selection action and default keyboard shortcut. Offer preserve-source selection copy only in the popup; it retains more source elements without promising lossless capture or using AI.
+- Cover output quality with synthetic regression fixtures and tests for both unwanted artifacts and retained content; do not check private captured content into the repository.
+
 ## File map
 
 - `README.md` — purpose, installation, usage, and limitations.
@@ -22,10 +27,13 @@
 - `manifest.json` — extension permissions and service-worker entry point.
 - `src/adapters.js` — source registry, detection, actions, and adapter capture contracts.
 - `src/image-capture.js` — bounded active-page image fetching.
+- `test/image-capture.test.js` — Craigslist extension-origin image fetching and host validation tests.
 - `src/image-export.js` — pure local image rewriting and ZIP generation.
 - `test/image-export.test.js` — image fallback, ZIP integrity, and rewritten metadata tests.
 - `src/export.js` — shared copy and download orchestration.
-- `src/metadata.js` — non-selection source metadata and optional UTC timestamp/SHA-256 formatting.
+- `src/debug.js` — optional diagnostic comment formatting for exported Markdown.
+- `test/debug.test.js` — diagnostic comment parsing and safety checks.
+- `src/metadata.js` — source metadata and optional UTC timestamp/SHA-256 formatting.
 - `src/background.js` — same-origin Reddit acquisition and selection context-menu orchestration.
 - `src/popup.html` — compact export-action menu markup.
 - `src/popup.css` — popup menu styling.
@@ -37,7 +45,7 @@
 - `src/selection.js` — immediate, pure selected-DOM extraction before conversion dependencies load.
 - `src/selection-output.js` — pure selection output choice and local diagnostic report formatting.
 - `src/shortcuts.js` — platform-specific shortcut labels for Chrome UI surfaces.
-- `src/webpage.js` — pure Readability, shared action-control cleanup, and HTML-to-Markdown conversion logic.
+- `src/webpage.js` — pure Readability, Craigslist post/gallery capture, default/preserve-source cleanup policies, portable image handling, and HTML-to-Markdown conversion logic.
 - `icons/` — packaged extension icons in Chrome-required PNG sizes.
 - `scripts/package-extension.js` — validates and creates the Web Store upload ZIP.
 - `scripts/create-github-release.sh` — prepares release metadata, checks, packages, and publishes a GitHub release with the Web Store ZIP.
@@ -46,7 +54,7 @@
 - `vendor/pdfjs/` — vendored PDF.js browser runtime, license, and update notes.
 - `vendor/webpage/` — bundled webpage converter, licenses, and update notes.
 - `test/pdf.test.js` — PDF detection, conversion, and fixture extraction tests.
-- `test/popup.test.js` — popup selection-action and clipboard test.
+- `test/popup.test.js` — popup selection policies, service-worker forwarding, single-menu registration, and clipboard tests.
 - `test/adapters.test.js` — adapter contract, detection, action, and capture tests.
 - `test/export.test.js` — normalized shared copy/download orchestration tests.
 - `test/metadata.test.js` — exact UTF-8 hash verification and metadata formatting tests.

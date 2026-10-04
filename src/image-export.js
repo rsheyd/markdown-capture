@@ -1,7 +1,7 @@
 // Pure asset rewriting and a ZIP writer using uncompressed entries (images are
 // already compressed). No hosted conversion or runtime dependency is needed.
 export const imageLimits = { count: 100, bytes: 10 * 1024 * 1024, total: 50 * 1024 * 1024 };
-const extensions = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'image/avif': 'avif', 'image/bmp': 'bmp', 'image/x-icon': 'ico' };
+const extensions = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp', 'image/svg+xml': 'svg', 'image/avif': 'avif', 'image/bmp': 'bmp', 'image/x-icon': 'ico', 'image/heic': 'heic', 'image/heif': 'heif' };
 
 export async function localizeImages(result, fetchImage) {
   const assets = [];

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Add a Gmail conversation **Download with images** ZIP for loaded inline images and visible image attachments, using Gmail's existing session for same-origin attachment requests.
+- Request narrow optional access to Craigslist's image host when downloading a post with images, allowing gallery photos to be fetched for the ZIP despite cross-origin page restrictions.
+- Replace the separate selection debug action with an **Include debug info** checkbox for all exports, and make **Include capture time and SHA-256** apply to selection copies from the popup, context menu, and keyboard shortcut as well as other actions.
+- Add a Craigslist post adapter for current and legacy post URLs, with Markdown copy/download and a gallery-aware **Download with images** ZIP that links detected gallery photos to their larger renditions. Show the detected gallery count in the popup before download.
+- Improve popup readability with stronger dark-mode contrast and a consistent size and weight hierarchy across actions, descriptions, section labels, helper text, and status messages.
+
+- Make default HTML conversion omit explicitly decorative and redundant status images and replace embedded or temporary image references with readable labels while retaining image assets for ZIP exports.
+- Add popup-only **Copy selection (preserve source)** through the shared converter; right-click and keyboard selection copy keep the default behavior.
+- Make the webpage popup lead with selection copy when text is selected and main-content copy otherwise, with alternate copy and download actions under More options and a direct page-content fallback after main extraction fails.
+- Document the readable Markdown contract and add synthetic output-quality regression tests.
+
 ## 0.7.5 — 2026-09-27
 
 - Fix release preparation from a standalone `Unreleased` heading, advancing the patch version and committing matching manifest and changelog metadata.
