@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Markdown Capture",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "Capture supported web content as clean Markdown.",
   "permissions": [
     "activeTab",
@@ -11,7 +11,9 @@
     "scripting",
     "storage"
   ],
-  "optional_host_permissions": ["https://images.craigslist.org/*"],
+  "optional_host_permissions": [
+    "https://images.craigslist.org/*"
+  ],
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",

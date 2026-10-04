@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.6 — 2026-10-03
 
 - Add a Gmail conversation **Download with images** ZIP for loaded inline images and visible image attachments, using Gmail's existing session for same-origin attachment requests.
 - Request narrow optional access to Craigslist's image host when downloading a post with images, allowing gallery photos to be fetched for the ZIP despite cross-origin page restrictions.
