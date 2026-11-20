@@ -8,7 +8,7 @@ import {
 } from '../src/adapters.js';
 
 test('registers adapters with the common contract', () => {
-  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'gmail', 'craigslist', 'webpage']);
+  assert.deepEqual(adapters.map(adapter => adapter.id), ['reddit', 'pdf', 'gmail', 'threads', 'craigslist', 'webpage']);
   for (const adapter of adapters) {
     assert.equal(typeof adapter.detect, 'function');
     assert.equal(typeof adapter.actions, 'function');
@@ -180,4 +180,24 @@ test('Gmail adapter delegates conversation acquisition', async () => {
     }
   });
   assert.equal(result, expected);
+});
+
+test('limits Threads capture to one conversation and passes its canonical URL to acquisition', async () => {
+  const sourceUrl = 'https://www.threads.com/messages/t/123';
+  const tab = { id: 8, url: `${sourceUrl}/?example=1` };
+  const source = detectSource(tab);
+  assert.equal(source.id, 'threads');
+  assert.deepEqual(source.actions.map(({ id, output }) => [id, output]), [
+    ['threads-copy', 'copy'], ['threads-download', 'download']
+  ]);
+  assert.equal(detectSource({ url: 'https://www.threads.com/messages' }).id, 'webpage');
+  assert.equal(detectSource({ url: 'https://example.com/messages/t/123' }).id, 'webpage');
+
+  const result = { title: 'Threads conversation', sourceUrl, markdown: '# Thread', filename: 'thread.md' };
+  assert.equal(await getAdapter(source.id).capture({ tab, detection: source.detection }, {
+    captureThreads: async (...args) => {
+      assert.deepEqual(args, [tab.id, sourceUrl]);
+      return result;
+    }
+  }), result);
 });

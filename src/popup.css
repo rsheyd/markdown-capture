@@ -85,6 +85,10 @@ button:disabled, .group-label.disabled {
   font-size: 13px;
 }
 
+#primary-action[hidden] {
+  display: none;
+}
+
 #primary-action {
   background: color-mix(in srgb, #174ea6 12%, transparent);
   color: light-dark(#174ea6, #aecbfa);

@@ -1,6 +1,7 @@
 import { detectSource } from './adapters.js';
 import { runExport } from './export.js';
 import { fetchPageImage, fetchCraigslistImage } from './image-capture.js';
+import { collectThreadsHistory } from './threads.js';
 import { createImageZip } from './image-export.js';
 
 const actionsContainer = document.querySelector('#actions');
@@ -59,6 +60,18 @@ const dependencies = {
     });
     const result = results[0]?.result;
     if (!result) throw new Error('The web page did not return captured content.');
+    return result;
+  },
+
+  async captureThreads(tabId, sourceUrl) {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ['vendor/webpage/webpage.js'] });
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: collectThreadsHistory,
+      args: [sourceUrl]
+    });
+    const result = results[0]?.result;
+    if (!result) throw new Error('Could not capture the Threads conversation.');
     return result;
   },
 
@@ -224,7 +237,7 @@ if (!source) {
       appendAction(action, previousGroup);
       previousGroup = action.group || null;
     }
-    if (source.id === 'gmail' || source.id === 'reddit' || source.id === 'craigslist') {
+    if (['gmail', 'reddit', 'craigslist', 'threads'].includes(source.id)) {
       appendAction({ id: 'selection-copy', label: 'Copy Selection as Markdown', group: 'Selection' }, previousGroup);
       appendAction({ id: 'selection-preserve-copy', label: 'Copy Selection as Markdown (preserve source)', group: 'Selection' }, 'Selection');
     }
@@ -255,7 +268,7 @@ if (!source) {
       ? 'Reading PDF…'
       : source.id === 'reddit'
         ? 'Fetching Reddit comments…'
-        : 'Reading page…';
+        : source.id === 'threads' ? 'Reading conversation… Keep this popup open.' : 'Reading page…';
     showStatus(progress);
 
     try {
@@ -264,6 +277,11 @@ if (!source) {
         if (!granted) throw new Error('Craigslist image access was not granted. No ZIP was downloaded.');
       }
       const result = await runExport({ source, actionId: action.id, tab, includeIntegrity: integrityCheckbox.checked, includeDebug: debugCheckbox.checked }, dependencies);
+      if (source.id === 'threads') {
+        const destination = result.output === 'copy' ? 'copied to clipboard' : 'ready to download';
+        showStatus(`${result.complete ? 'Conversation' : 'Partial conversation'} ${destination}. ${result.messageCount} messages.`);
+        return;
+      }
       showStatus(result.imageFailures?.length
         ? `ZIP ready. ${result.imageFailures.length} image(s) could not be saved; original links retained.`
         : result.assets ? `ZIP ready with ${result.assets.length} image(s).`

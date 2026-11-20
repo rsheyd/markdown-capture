@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add Markdown copy and download for the open Threads conversation, with sender labels and an explicit partial-export indicator when coverage cannot be verified.
+- Fix an empty primary-action bar appearing in the popup on Threads and unsupported tabs.
+
 ## 0.7.6 — 2026-10-03
 
 - Add a Gmail conversation **Download with images** ZIP for loaded inline images and visible image attachments, using Gmail's existing session for same-origin attachment requests.

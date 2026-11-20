@@ -192,6 +192,8 @@ Exit criteria:
 
 Craigslist post support is now implemented with a dedicated adapter because the generic webpage image action can miss gallery photos or capture only thumbnails. The adapter uses the shared output and ZIP path, with synthetic coverage for gallery order, larger image URLs, and post details. Roman maintains it in this project; live Craigslist image ZIP validation remains pending.
 
+Threads conversation support uses a dedicated adapter to collect virtualized messages from the active conversation. Roman maintains it in this project. Coverage and sender handling are tested with synthetic batches.
+
 Candidates may include Hacker News, GitHub, or AI conversation pages. Add an adapter only when the generic fallback produces materially poor output and the source is used often enough to justify ongoing maintenance.
 
 Each new adapter must include fixtures, pure conversion tests, documented limitations, and a maintenance owner. This phase is intentionally open-ended and is not a commitment to support every website.

@@ -20,6 +20,7 @@ You can also reply wherever you found the extension. For capture problems, a pub
 | Reddit comment permalink | **Copy Markdown** or **Download Markdown** under **This comment thread** | The selected comment and its returned replies |
 | Text-based PDF or Gmail PDF attachment | **Copy PDF as Markdown** | Basic page-by-page text with title and source URL |
 | Gmail conversation | **Copy**, **Download Conversation**, or **Download with images** | Loaded messages with sender, recipients, timestamp, and cleaned body; the image ZIP also includes detected inline photos and attached image files |
+| Threads conversation | **Copy Conversation** or **Download Conversation** | Messages from the open conversation in oldest-first order, including sender labels, visible timestamps, and attachment placeholders |
 | Article or documentation page | **Copy main content** | Best-effort Readability extraction converted to Markdown |
 | Discussion, listing, application-style page, or form | **Copy page content** or **Download page content** | Rendered content from the page's main region, including entered text and selected form state, with action controls removed |
 | Webpage with images | **Download with images** | ZIP containing Markdown and downloaded images with relative links; failed images retain web URLs |
@@ -106,6 +107,7 @@ See [DEVELOPMENT.md](docs/DEVELOPMENT.md) for the Chrome development loop, vendo
 - Page-content capture can preserve repeated cards and discussion comments, but site-specific interface text may remain and visual groupings may be flattened.
 - Dynamic content that has not rendered when capture begins is not included.
 - Gmail conversation capture includes loaded messages. Expand any message whose body Gmail has not loaded before capturing the conversation. Image ZIP capture is best effort for inline images and visible attached image files; other attachment types are not downloaded.
+- Threads conversation capture scrolls through the open conversation and returns to the original position. Keep the popup open while it runs. If coverage cannot be verified, the popup and Markdown label the export partial. Sender identification and timestamps depend on the rendered Threads layout.
 - Complex interactive components, forms, canvas content, and visual layout do not have lossless Markdown equivalents.
 - Selection capture is limited to HTTP(S) documents where Chrome permits active-tab script injection. Restricted browser pages are not supported.
 - PDF capture currently recognizes only HTTP(S) URLs whose path ends in `.pdf` and PDF attachments opened in Gmail's standard projector viewer.

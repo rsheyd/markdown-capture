@@ -3,6 +3,7 @@ import {
   parseRedditPostUrl,
   redditJsonToMarkdown
 } from './reddit.js';
+import { threadsConversationUrl } from './threads.js';
 import { isPdfUrl } from './pdf.js';
 import { isGmailPdfViewerUrl } from './gmail-pdf.js';
 
@@ -167,7 +168,28 @@ const gmailAdapter = {
   }
 };
 
-export const adapters = [redditAdapter, pdfAdapter, gmailAdapter, craigslistAdapter, webpageAdapter];
+const threadsAdapter = {
+  id: 'threads',
+  label: 'Threads conversation',
+
+  detect(tab) {
+    const sourceUrl = threadsConversationUrl(tab?.url);
+    return sourceUrl ? { sourceUrl } : null;
+  },
+
+  actions() {
+    return [
+      action('threads-copy', 'Copy Conversation', 'copy'),
+      action('threads-download', 'Download Conversation', 'download')
+    ];
+  },
+
+  capture({ tab, detection }, dependencies) {
+    return dependencies.captureThreads(tab.id, detection.sourceUrl);
+  }
+};
+
+export const adapters = [redditAdapter, pdfAdapter, gmailAdapter, threadsAdapter, craigslistAdapter, webpageAdapter];
 
 export function detectSource(tab) {
   for (const adapter of adapters) {
