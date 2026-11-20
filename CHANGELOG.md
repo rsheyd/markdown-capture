@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.7 — 2026-11-20
 
 - Add Markdown copy and download for the open Threads conversation, with sender labels and an explicit partial-export indicator when coverage cannot be verified.
 - Fix an empty primary-action bar appearing in the popup on Threads and unsupported tabs.
